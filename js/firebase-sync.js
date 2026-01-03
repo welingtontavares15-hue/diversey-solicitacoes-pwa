@@ -1,12 +1,14 @@
-import { ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { ref, onValue, set, get } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js';
 
-const PATH = "apps/diversey-solicitacoes-pwa/state";
-const LOCAL_STATE_KEY = "diversey_state_sync";
-const LEGACY_STATE_KEYS = ["APP_STATE", "diversey_state"];
+const PATH = 'apps/diversey-solicitacoes-pwa/state';
+const LOCAL_STATE_KEY = 'diversey_state_sync';
+const LEGACY_STATE_KEYS = ['APP_STATE', 'diversey_state'];
 let applyingRemote = false;
 let lastRemoteUpdatedAt = 0;
 
-function now() { return Date.now(); }
+function now() {
+    return Date.now();
+}
 
 function clone(obj) {
     try {
@@ -89,7 +91,7 @@ function writeLocalSnapshot(obj) {
         if (obj.partsVersion && DataManager.KEYS && DataManager.KEYS.PARTS_VERSION) {
             localStorage.setItem(DataManager.KEYS.PARTS_VERSION, obj.partsVersion);
         }
-        window.dispatchEvent(new CustomEvent("data:updated", { detail: { keys: Object.keys(obj.data || {}) } }));
+        window.dispatchEvent(new CustomEvent('data:updated', { detail: { keys: Object.keys(obj.data || {}) } }));
     }
 }
 
@@ -110,7 +112,7 @@ export function captureLocalSnapshot() {
 export async function startFirebaseSync() {
     const db = window.firebaseDB;
     if (!db) {
-        console.warn("Firebase DB not initialized yet.");
+        console.warn('Firebase DB not initialized yet.');
         return;
     }
 
@@ -132,7 +134,7 @@ export async function startFirebaseSync() {
                 writeLocalSnapshot(remote);
                 applyingRemote = false;
                 updateStatus('sincronizado');
-                window.dispatchEvent(new CustomEvent("cloud-sync-applied"));
+                window.dispatchEvent(new CustomEvent('cloud-sync-applied'));
             } else if (chosen) {
                 await pushToCloud(chosen);
             }
@@ -143,35 +145,45 @@ export async function startFirebaseSync() {
             }
         }
     } catch (e) {
-        console.error("Falha ao carregar estado remoto:", e);
+        console.error('Falha ao carregar estado remoto:', e);
     }
 
     // 2) escutar atualizações remotas
     onValue(stateRef, (snap) => {
-        if (!snap.exists()) return;
+        if (!snap.exists()) {
+            return;
+        }
         const remote = snap.val();
         const rts = remote?.__meta?.updatedAt || 0;
 
-        if (rts <= lastRemoteUpdatedAt) return;
+        if (rts <= lastRemoteUpdatedAt) {
+            return;
+        }
         lastRemoteUpdatedAt = rts;
 
         applyingRemote = true;
         writeLocalSnapshot(remote);
         applyingRemote = false;
         updateStatus('sincronizado');
-        window.dispatchEvent(new CustomEvent("cloud-sync-applied"));
+        window.dispatchEvent(new CustomEvent('cloud-sync-applied'));
     });
 }
 
 export async function pushToCloud(stateObj) {
     const db = window.firebaseDB;
-    if (!db || shouldSkipCloudWrite()) return;
+    if (!db || shouldSkipCloudWrite()) {
+        return;
+    }
 
     const state = clone(stateObj) || captureLocalSnapshot();
-    if (!state) return;
-    if (!state.__meta) state.__meta = {};
+    if (!state) {
+        return;
+    }
+    if (!state.__meta) {
+        state.__meta = {};
+    }
     state.__meta.updatedAt = now();
-    state.__meta.updatedBy = window.firebaseUser?.uid || "anonymous-user";
+    state.__meta.updatedBy = window.firebaseUser?.uid || 'anonymous-user';
     lastRemoteUpdatedAt = state.__meta.updatedAt;
 
     const stateRef = ref(db, PATH);
@@ -179,9 +191,9 @@ export async function pushToCloud(stateObj) {
         await set(stateRef, state);
         writeLocalSnapshot(state);
         updateStatus('sincronizado');
-        window.dispatchEvent(new CustomEvent("cloud-sync-pushed"));
+        window.dispatchEvent(new CustomEvent('cloud-sync-pushed'));
     } catch (e) {
-        console.error("Falha ao salvar no cloud:", e);
+        console.error('Falha ao salvar no cloud:', e);
     }
 }
 

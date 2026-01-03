@@ -1,6 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getDatabase, ref, set, get, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import { getDatabase, ref, set, get, onValue, off } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js';
 
 /**
  * Firebase Initialization Module
@@ -9,13 +9,13 @@ import { getDatabase, ref, set, get, onValue, off } from "https://www.gstatic.co
  */
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAemXgLAf1jpmJHSfY4vS_W9mU_B4X4nlY",
-    authDomain: "diversey-solicitacoes-pwa.firebaseapp.com",
-    projectId: "diversey-solicitacoes-pwa",
-    storageBucket: "diversey-solicitacoes-pwa.firebasestorage.app",
-    messagingSenderId: "309933572392",
-    appId: "1:309933572392:web:d523d3e42e1238b6bd901d",
-    databaseURL: "https://diversey-solicitacoes-pwa-default-rtdb.firebaseio.com"
+    apiKey: 'AIzaSyAemXgLAf1jpmJHSfY4vS_W9mU_B4X4nlY',
+    authDomain: 'diversey-solicitacoes-pwa.firebaseapp.com',
+    projectId: 'diversey-solicitacoes-pwa',
+    storageBucket: 'diversey-solicitacoes-pwa.firebasestorage.app',
+    messagingSenderId: '309933572392',
+    appId: '1:309933572392:web:d523d3e42e1238b6bd901d',
+    databaseURL: 'https://diversey-solicitacoes-pwa-default-rtdb.firebaseio.com'
 };
 
 // Expose firebase modules globally to preserve backward compatibility
@@ -291,8 +291,6 @@ const FirebaseInit = {
      * Resolves true when ready, false on timeout.
      */
     async waitForCloudReady(timeoutMs = 10000) {
-        const start = Date.now();
-
         // Ensure initialization has been attempted
         if (!this.isInitialized) {
             await this.init();
