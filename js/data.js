@@ -780,6 +780,21 @@ const DataManager = {
         try {
             // Update session cache
             this._sessionCache[key] = data;
+
+            // Sync snapshot to Firebase RTDB (shared state)
+            try {
+                import('./js/firebase-sync.js').then((mod) => {
+                    if (!mod || typeof mod.shouldSkipCloudWrite !== 'function' || mod.shouldSkipCloudWrite()) {
+                        return;
+                    }
+                    const snapshot = (typeof mod.captureLocalSnapshot === 'function') ? mod.captureLocalSnapshot() : null;
+                    if (snapshot && typeof mod.pushToCloud === 'function') {
+                        mod.pushToCloud(snapshot);
+                    }
+                }).catch(() => {});
+            } catch (_e) {
+                // ignore sync errors to avoid blocking UI
+            }
             
             // Online-only mode: Save directly to cloud - no localStorage persistence
             if (this.cloudInitialized && typeof CloudStorage !== 'undefined') {
