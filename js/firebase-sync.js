@@ -2,6 +2,7 @@ import { ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.12
 
 const PATH = "apps/diversey-solicitacoes-pwa/state";
 const LOCAL_STATE_KEY = "diversey_state_sync";
+const LEGACY_STATE_KEYS = ["APP_STATE", "diversey_state"];
 let applyingRemote = false;
 let lastRemoteUpdatedAt = 0;
 
@@ -47,7 +48,16 @@ function snapshotFromDataManager() {
 }
 
 function readLocalSnapshot() {
-    const raw = localStorage.getItem(LOCAL_STATE_KEY) || localStorage.getItem("APP_STATE") || localStorage.getItem("diversey_state");
+    let raw = localStorage.getItem(LOCAL_STATE_KEY);
+    if (!raw) {
+        for (const key of LEGACY_STATE_KEYS) {
+            const candidate = localStorage.getItem(key);
+            if (candidate) {
+                raw = candidate;
+                break;
+            }
+        }
+    }
     if (raw) {
         try {
             const parsed = JSON.parse(raw);
@@ -67,7 +77,9 @@ function writeLocalSnapshot(obj) {
     }
     try {
         localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(obj));
-        localStorage.setItem("APP_STATE", JSON.stringify(obj));
+        LEGACY_STATE_KEYS.forEach((key) => {
+            localStorage.setItem(key, JSON.stringify(obj));
+        });
     } catch (_e) {
         // ignore
     }
@@ -84,7 +96,7 @@ function writeLocalSnapshot(obj) {
 function mergeStrategy(localObj, remoteObj) {
     const lts = localObj?.__meta?.updatedAt || 0;
     const rts = remoteObj?.__meta?.updatedAt || 0;
-    return (rts >= lts) ? remoteObj : localObj;
+    return (rts > lts) ? remoteObj : localObj;
 }
 
 export function captureLocalSnapshot() {
@@ -98,7 +110,7 @@ export function captureLocalSnapshot() {
 export async function startFirebaseSync() {
     const db = window.firebaseDB;
     if (!db) {
-        console.warn("Firebase DB não inicializado ainda.");
+        console.warn("Firebase DB not initialized yet.");
         return;
     }
 
@@ -159,13 +171,13 @@ export async function pushToCloud(stateObj) {
     if (!state) return;
     if (!state.__meta) state.__meta = {};
     state.__meta.updatedAt = now();
-    state.__meta.updatedBy = window.firebaseUser?.uid || "anon";
+    state.__meta.updatedBy = window.firebaseUser?.uid || "anonymous-user";
     lastRemoteUpdatedAt = state.__meta.updatedAt;
 
     const stateRef = ref(db, PATH);
     try {
-        writeLocalSnapshot(state);
         await set(stateRef, state);
+        writeLocalSnapshot(state);
         updateStatus('sincronizado');
         window.dispatchEvent(new CustomEvent("cloud-sync-pushed"));
     } catch (e) {

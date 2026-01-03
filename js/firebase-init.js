@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getDatabase, ref, set, get, onValue, off, child } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { getDatabase, ref, set, get, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 /**
  * Firebase Initialization Module
@@ -30,8 +30,7 @@ if (typeof window !== 'undefined') {
         set,
         get,
         onValue,
-        off,
-        child
+        off
     };
     window.FIREBASE_CONFIG = firebaseConfig;
     window.firebaseApp = null;
@@ -162,12 +161,6 @@ const FirebaseInit = {
                         reject(error);
                     });
 
-                    // Trigger anonymous sign in
-                    signInAnonymously(this.auth).catch((error) => {
-                        clearTimeout(timeout);
-                        console.error('Anonymous sign in failed:', error);
-                        reject(error);
-                    });
                 });
             } catch (error) {
                 console.error('Failed to authenticate with Firebase:', error);

@@ -168,6 +168,15 @@ const STATS_CONFIG = {
     OUTLIER_PERCENTILE_THRESHOLD: 0.95
 };
 
+const FIREBASE_SYNC_MODULE_PATH = '/js/firebase-sync.js';
+const firebaseSyncModuleRef = { promise: null };
+function loadFirebaseSyncModule() {
+    if (!firebaseSyncModuleRef.promise) {
+        firebaseSyncModuleRef.promise = import(FIREBASE_SYNC_MODULE_PATH);
+    }
+    return firebaseSyncModuleRef.promise;
+}
+
 const DataManager = {
     // Storage keys
     KEYS: {
@@ -783,7 +792,7 @@ const DataManager = {
 
             // Sync snapshot to Firebase RTDB (shared state)
             try {
-                import('./js/firebase-sync.js').then((mod) => {
+                loadFirebaseSyncModule().then((mod) => {
                     if (!mod || typeof mod.shouldSkipCloudWrite !== 'function' || mod.shouldSkipCloudWrite()) {
                         return;
                     }
