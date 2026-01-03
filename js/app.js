@@ -1434,12 +1434,12 @@ const App = {
     }
 };
 
-const FIREBASE_SYNC_MODULE_PATH = '/js/firebase-sync.js';
+const APP_FIREBASE_SYNC_MODULE_PATH = '/js/firebase-sync.js';
 
 // Start cloud synchronization once Firebase is ready
 window.addEventListener('firebase-ready', async () => {
     try {
-        const mod = await import(FIREBASE_SYNC_MODULE_PATH);
+        const mod = await import(APP_FIREBASE_SYNC_MODULE_PATH);
         await mod.startFirebaseSync();
     } catch (error) {
         console.warn('Falha ao iniciar sincronização com Firebase', error);
