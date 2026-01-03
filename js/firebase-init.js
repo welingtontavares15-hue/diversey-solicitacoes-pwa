@@ -1,8 +1,43 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getDatabase, ref, set, get, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
 /**
  * Firebase Initialization Module
  * Centralizes Firebase app initialization and authentication
  * Prevents multiple initialization and ensures authentication before database access
  */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAemXgLAf1jpmJHSfY4vS_W9mU_B4X4nlY",
+    authDomain: "diversey-solicitacoes-pwa.firebaseapp.com",
+    projectId: "diversey-solicitacoes-pwa",
+    storageBucket: "diversey-solicitacoes-pwa.firebasestorage.app",
+    messagingSenderId: "309933572392",
+    appId: "1:309933572392:web:d523d3e42e1238b6bd901d",
+    databaseURL: "https://diversey-solicitacoes-pwa-default-rtdb.firebaseio.com"
+};
+
+// Expose firebase modules globally to preserve backward compatibility
+if (typeof window !== 'undefined') {
+    window.firebaseModules = {
+        initializeApp,
+        getDatabase,
+        getAuth,
+        signInAnonymously,
+        onAuthStateChanged,
+        ref,
+        set,
+        get,
+        onValue,
+        off
+    };
+    window.FIREBASE_CONFIG = firebaseConfig;
+    window.firebaseApp = null;
+    window.firebaseAuth = null;
+    window.firebaseDB = null;
+    window.firebaseUser = null;
+}
 
 const FirebaseInit = {
     app: null,
@@ -20,22 +55,14 @@ const FirebaseInit = {
      * Firebase configuration from environment or hardcoded values
      * In production, use environment variables
      */
-        getConfig() {
+    getConfig() {
         // Prefer config fornecida em js/firebase-config.js
         if (typeof window !== 'undefined' && window.FIREBASE_CONFIG) {
             return window.FIREBASE_CONFIG;
         }
 
-        // Fallback (placeholders) — o app não deve funcionar sem você configurar.
-        return {
-            apiKey: 'SUA_API_KEY',
-            authDomain: 'SEU_PROJETO.firebaseapp.com',
-            databaseURL: 'https://SEU_PROJETO-default-rtdb.firebaseio.com',
-            projectId: 'SEU_PROJETO',
-            storageBucket: 'SEU_PROJETO.appspot.com',
-            messagingSenderId: 'SENDER_ID',
-            appId: 'APP_ID'
-        };
+        // Fallback para configuração padrão usada no PWA
+        return firebaseConfig;
     },
 
     /**
@@ -54,13 +81,17 @@ const FirebaseInit = {
                 return false;
             }
 
-            const { initializeApp, getDatabase, getAuth } = window.firebaseModules;
-
             // Initialize Firebase app
             const config = this.getConfig();
             this.app = initializeApp(config);
-            this.database = getDatabase(this.app);
+            this.database = getDatabase(this.app, config.databaseURL);
             this.auth = getAuth(this.app);
+
+            if (typeof window !== 'undefined') {
+                window.firebaseApp = this.app;
+                window.firebaseDB = this.database;
+                window.firebaseAuth = this.auth;
+            }
 
             this.isInitialized = true;
             console.log('Firebase initialized successfully');
@@ -101,8 +132,6 @@ const FirebaseInit = {
                     return false;
                 }
 
-                const { signInAnonymously, onAuthStateChanged } = window.firebaseModules;
-
                 // Set up auth state listener
                 return new Promise((resolve, reject) => {
                     const timeout = setTimeout(() => {
@@ -111,24 +140,27 @@ const FirebaseInit = {
 
                     onAuthStateChanged(this.auth, (user) => {
                         clearTimeout(timeout);
-                        if (user) {
-                            this.isAuthenticated = true;
-                            console.log('Firebase authenticated successfully (anonymous)');
-                            this._notifyCloudReady();
-                            resolve(true);
+                        if (!user) {
+                            signInAnonymously(this.auth).catch((error) => {
+                                console.error('Anonymous sign in failed:', error);
+                                reject(error);
+                            });
+                            return;
                         }
+                        this.isAuthenticated = true;
+                        if (typeof window !== 'undefined') {
+                            window.firebaseUser = user;
+                            window.dispatchEvent(new CustomEvent('firebase-ready', { detail: { uid: user.uid } }));
+                        }
+                        console.log('Firebase user (anon) OK:', user.uid);
+                        this._notifyCloudReady();
+                        resolve(true);
                     }, (error) => {
                         clearTimeout(timeout);
                         console.error('Auth state change error:', error);
                         reject(error);
                     });
 
-                    // Trigger anonymous sign in
-                    signInAnonymously(this.auth).catch((error) => {
-                        clearTimeout(timeout);
-                        console.error('Anonymous sign in failed:', error);
-                        reject(error);
-                    });
                 });
             } catch (error) {
                 console.error('Failed to authenticate with Firebase:', error);

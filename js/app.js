@@ -524,12 +524,15 @@ const App = {
         const content = document.getElementById('content-area');
         const settings = DataManager.getSettings();
         const canEdit = Auth.hasPermission('configuracoes', 'edit');
-        const cloudReady = DataManager.isCloudReady();
-        const isConnecting = DataManager.isCloudConnecting();
-        const isCloudAvailable = DataManager.isCloudAvailable();
-        const cloudStatusLabel = cloudReady ? 'Conectado à Nuvem' : (isConnecting ? 'Conectando à nuvem…' : 'Armazenamento Local');
+        const firebaseUser = typeof window !== 'undefined' ? window.firebaseUser : null;
+        const syncStarted = !!window.__firebaseSyncStarted;
+        const syncStatus = window.__cloudSyncStatus;
+        const cloudReady = (firebaseUser && syncStarted) || DataManager.isCloudReady();
+        const isConnecting = (!cloudReady) && DataManager.isCloudConnecting();
+        const isCloudAvailable = cloudReady || DataManager.isCloudAvailable();
+        const cloudStatusLabel = cloudReady ? 'Sincronização em nuvem: ATIVA' : (isConnecting ? 'Conectando à nuvem…' : 'Armazenamento Local');
         const cloudStatusDesc = cloudReady
-            ? 'Os dados são sincronizados automaticamente entre dispositivos.'
+            ? `Dados sincronizados automaticamente via Firebase${syncStatus ? ` (status: ${syncStatus})` : ''}.`
             : (isConnecting
                 ? 'Aguardando autenticação e conexão segura com a nuvem.'
                 : 'Os dados estão sendo salvos apenas neste dispositivo. A sincronização em nuvem não está disponível.');
@@ -1430,6 +1433,27 @@ const App = {
         `;
     }
 };
+
+const FIREBASE_SYNC_MODULE_PATH = '/js/firebase-sync.js';
+
+// Start cloud synchronization once Firebase is ready
+window.addEventListener('firebase-ready', async () => {
+    try {
+        const mod = await import(FIREBASE_SYNC_MODULE_PATH);
+        await mod.startFirebaseSync();
+    } catch (error) {
+        console.warn('Falha ao iniciar sincronização com Firebase', error);
+    }
+});
+
+// Refresh settings UI when sync status changes
+['cloud-sync-applied', 'cloud-sync-pushed', 'cloud-sync-status'].forEach((evt) => {
+    window.addEventListener(evt, () => {
+        if (App.currentPage === 'configuracoes') {
+            App.renderConfiguracoes();
+        }
+    });
+});
 
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {

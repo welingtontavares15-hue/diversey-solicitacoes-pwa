@@ -168,6 +168,15 @@ const STATS_CONFIG = {
     OUTLIER_PERCENTILE_THRESHOLD: 0.95
 };
 
+const FIREBASE_SYNC_MODULE_PATH = '/js/firebase-sync.js';
+const firebaseSyncModuleRef = { promise: null };
+function loadFirebaseSyncModule() {
+    if (!firebaseSyncModuleRef.promise) {
+        firebaseSyncModuleRef.promise = import(FIREBASE_SYNC_MODULE_PATH);
+    }
+    return firebaseSyncModuleRef.promise;
+}
+
 const DataManager = {
     // Storage keys
     KEYS: {
@@ -780,6 +789,21 @@ const DataManager = {
         try {
             // Update session cache
             this._sessionCache[key] = data;
+
+            // Sync snapshot to Firebase RTDB (shared state)
+            try {
+                loadFirebaseSyncModule().then((mod) => {
+                    if (!mod || typeof mod.shouldSkipCloudWrite !== 'function' || mod.shouldSkipCloudWrite()) {
+                        return;
+                    }
+                    const snapshot = (typeof mod.captureLocalSnapshot === 'function') ? mod.captureLocalSnapshot() : null;
+                    if (snapshot && typeof mod.pushToCloud === 'function') {
+                        mod.pushToCloud(snapshot);
+                    }
+                }).catch(() => {});
+            } catch (_e) {
+                // ignore sync errors to avoid blocking UI
+            }
             
             // Online-only mode: Save directly to cloud - no localStorage persistence
             if (this.cloudInitialized && typeof CloudStorage !== 'undefined') {
