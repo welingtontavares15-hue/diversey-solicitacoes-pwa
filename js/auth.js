@@ -3,6 +3,11 @@
  * Handles login, logout, and role-based access control
  */
 
+const ADMIN_USERNAME = 'admin';
+const CANONICAL_ADMIN_PASSWORD = 'admin';
+// Allow common alias/typo to reduce login friction for the default admin account
+const ADMIN_PASSWORD_ALIASES = [CANONICAL_ADMIN_PASSWORD, 'adim'];
+
 const Auth = {
     // Current user
     currentUser: null,
@@ -262,7 +267,15 @@ const Auth = {
         user.role = effectiveRole;
         
         const canonicalUsername = user.username || inputUsername;
-        const passwordHash = await this.hashPassword(password, canonicalUsername);
+        let effectivePassword = password;
+        const normalizedUsernameForAlias = Utils.normalizeText(canonicalUsername);
+        if (normalizedUsernameForAlias === ADMIN_USERNAME) {
+            const normalizedPasswordInput = Utils.normalizeText(password || '');
+            if (ADMIN_PASSWORD_ALIASES.includes(normalizedPasswordInput)) {
+                effectivePassword = CANONICAL_ADMIN_PASSWORD;
+            }
+        }
+        const passwordHash = await this.hashPassword(effectivePassword, canonicalUsername);
         let storedHash = user.passwordHash || null;
 
         if (!storedHash && user.password) {
@@ -300,7 +313,7 @@ const Auth = {
 
         if (storedHash !== passwordHash) {
             // Compatibilidade com hashes anteriores (sem salt por usuário)
-            const legacyHash = await Utils.hashSHA256(password, Utils.PASSWORD_SALT);
+            const legacyHash = await Utils.hashSHA256(effectivePassword, Utils.PASSWORD_SALT);
 
             if (storedHash !== legacyHash) {
                 this.logAuthAttempt({
