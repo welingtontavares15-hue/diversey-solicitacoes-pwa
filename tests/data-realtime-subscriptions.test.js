@@ -17,7 +17,8 @@ describe('DataManager realtime subscriptions', () => {
             init: jest.fn().mockResolvedValue(true),
             waitForCloudReady: jest.fn().mockResolvedValue(true),
             syncFromCloud: jest.fn().mockResolvedValue(true),
-            subscribe: jest.fn()
+            subscribe: jest.fn(),
+            unsubscribe: jest.fn()
         };
 
         // Prevent side effects during sync
@@ -40,6 +41,8 @@ describe('DataManager realtime subscriptions', () => {
             DataManager.KEYS.USERS,
             expect.any(Function)
         );
+        expect(global.CloudStorage.unsubscribe).toHaveBeenCalledWith(DataManager.KEYS.SOLICITATIONS);
+        expect(global.CloudStorage.unsubscribe).toHaveBeenCalledWith(DataManager.KEYS.USERS);
         expect(DataManager.realtimeSubscribed).toBe(true);
     });
 });

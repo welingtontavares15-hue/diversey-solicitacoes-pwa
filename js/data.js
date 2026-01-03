@@ -402,53 +402,65 @@ const DataManager = {
             return;
         }
 
-        CloudStorage.subscribe(this.KEYS.SOLICITATIONS, (data) => {
-            console.log('Solicitations updated from cloud');
-            // Update session cache
-            this._sessionCache[this.KEYS.SOLICITATIONS] = data;
-            // Refresh UI if on relevant page
-            if (typeof App !== 'undefined' && 
-                (App.currentPage === 'aprovacoes' || 
-                 App.currentPage === 'solicitacoes' ||
-                 App.currentPage === 'minhas-solicitacoes' ||
-                 App.currentPage === 'dashboard')) {
-                App.renderPage(App.currentPage);
-                if (typeof Auth !== 'undefined') {
-                    Auth.renderMenu(App.currentPage);
-                }
+        const subscribeSafe = (key, handler) => {
+            if (typeof CloudStorage.unsubscribe === 'function') {
+                CloudStorage.unsubscribe(key);
             }
-        });
+            CloudStorage.subscribe(key, handler);
+        };
 
-        // Subscribe to real-time updates for users to keep gestor logins synchronized
-        CloudStorage.subscribe(this.KEYS.USERS, (users) => {
-            console.log('Users updated from cloud');
-            // Update session cache
-            this._sessionCache[this.KEYS.USERS] = users;
-
-            // Keep current session aligned with latest user data (e.g., gestor updates)
-            if (typeof Auth !== 'undefined' && Auth.currentUser && Array.isArray(users)) {
-                const latestUser = users.find(u => u.username === Auth.currentUser.username);
-                if (!latestUser || latestUser.disabled) {
-                    Auth.logout();
-                    if (typeof App !== 'undefined' && typeof App.showLogin === 'function') {
-                        App.showLogin();
-                    }
-                } else {
-                    Auth.currentUser = Auth.buildSessionUser(latestUser);
-                    sessionStorage.setItem('diversey_current_user', JSON.stringify(Auth.currentUser));
-                    if (typeof App !== 'undefined' && App.currentPage) {
+        try {
+            subscribeSafe(this.KEYS.SOLICITATIONS, (data) => {
+                console.log('Solicitations updated from cloud');
+                // Update session cache
+                this._sessionCache[this.KEYS.SOLICITATIONS] = data;
+                // Refresh UI if on relevant page
+                if (typeof App !== 'undefined' && 
+                    (App.currentPage === 'aprovacoes' || 
+                     App.currentPage === 'solicitacoes' ||
+                     App.currentPage === 'minhas-solicitacoes' ||
+                     App.currentPage === 'dashboard')) {
+                    App.renderPage(App.currentPage);
+                    if (typeof Auth !== 'undefined') {
                         Auth.renderMenu(App.currentPage);
                     }
                 }
-            }
+            });
 
-            // Refresh configuration screen if opened
-            if (typeof App !== 'undefined' && App.currentPage === 'configuracoes') {
-                App.renderPage('configuracoes');
-            }
-        });
+            // Subscribe to real-time updates for users to keep gestor logins synchronized
+            subscribeSafe(this.KEYS.USERS, (users) => {
+                console.log('Users updated from cloud');
+                // Update session cache
+                this._sessionCache[this.KEYS.USERS] = users;
 
-        this.realtimeSubscribed = true;
+                // Keep current session aligned with latest user data (e.g., gestor updates)
+                if (typeof Auth !== 'undefined' && Auth.currentUser && Array.isArray(users)) {
+                    const latestUser = users.find(u => u.username === Auth.currentUser.username);
+                    if (!latestUser || latestUser.disabled) {
+                        Auth.logout();
+                        if (typeof App !== 'undefined' && typeof App.showLogin === 'function') {
+                            App.showLogin();
+                        }
+                    } else {
+                        Auth.currentUser = Auth.buildSessionUser(latestUser);
+                        sessionStorage.setItem('diversey_current_user', JSON.stringify(Auth.currentUser));
+                        if (typeof App !== 'undefined' && App.currentPage) {
+                            Auth.renderMenu(App.currentPage);
+                        }
+                    }
+                }
+
+                // Refresh configuration screen if opened
+                if (typeof App !== 'undefined' && App.currentPage === 'configuracoes') {
+                    App.renderPage('configuracoes');
+                }
+            });
+
+            this.realtimeSubscribed = true;
+        } catch (e) {
+            this.realtimeSubscribed = false;
+            console.warn('Failed to register realtime subscriptions', e);
+        }
     },
     
     /**
