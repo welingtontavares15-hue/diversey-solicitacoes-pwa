@@ -613,6 +613,13 @@ export function applyReportsModernization() {
                             `).join('')}
                         </select>
                     </div>
+                    <div class="filter-group">
+                        <label>Fornecedor</label>
+                        <select id="report-fornecedor" class="form-control">
+                            <option value="">Todos</option>
+                            ${(typeof DataManager !== 'undefined' ? DataManager.getSuppliers().filter((s) => s.ativo !== false) : []).map((s) => `<option value="${Utils.escapeHtml(s.id)}" ${this.filters.fornecedor === s.id ? 'selected' : ''}>${Utils.escapeHtml(s.nome)}</option>`).join('')}
+                        </select>
+                    </div>
                 </div>
                 <div class="report-filter-actions">
                     <button class="btn btn-primary report-primary-action" onclick="Relatorios.applyFilters()">

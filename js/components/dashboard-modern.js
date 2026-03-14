@@ -50,6 +50,7 @@ function getDefaultFilters() {
         estado: '',
         cliente: '',
         tecnico: '',
+        fornecedor: '',
         status: ''
     };
 }
@@ -86,7 +87,8 @@ function filterBaseSolicitations(filters) {
         },
         statuses: statusList,
         tecnico: filters.tecnico,
-        regiao: filters.estado
+        regiao: filters.estado,
+        fornecedor: filters.fornecedor || ''
     });
 
     if (filters.cliente) {
@@ -112,7 +114,8 @@ function buildAnalysis(filters) {
         statuses: statusList,
         tecnico: filters.tecnico,
         regiao: filters.estado,
-        cliente: filters.cliente
+        cliente: filters.cliente,
+        fornecedor: filters.fornecedor || ''
     });
 }
 
@@ -393,6 +396,12 @@ export function applyDashboardModernization() {
                             ${getStatusOptions().map((status) => `<option value="${status.value}" ${filters.status === status.value ? 'selected' : ''}>${status.label}</option>`).join('')}
                         </select>
                     `)}
+                    ${renderFilterField('Fornecedor', `
+                        <select id="saas-fornecedor" class="form-control">
+                            <option value="">Todos</option>
+                            ${(typeof DataManager !== 'undefined' ? DataManager.getSuppliers().filter((s) => s.ativo !== false) : []).map((s) => `<option value="${Utils.escapeHtml(s.id)}" ${filters.fornecedor === s.id ? 'selected' : ''}>${Utils.escapeHtml(s.nome)}</option>`).join('')}
+                        </select>
+                    `)}
                 </div>
 
                 <div class="page-kpis">
@@ -499,6 +508,7 @@ export function applyDashboardModernization() {
                 estado: document.getElementById('saas-estado')?.value || '',
                 cliente: document.getElementById('saas-cliente')?.value || '',
                 tecnico: document.getElementById('saas-tecnico')?.value || '',
+                fornecedor: document.getElementById('saas-fornecedor')?.value || '',
                 status: document.getElementById('saas-status')?.value || ''
             };
 
@@ -511,7 +521,7 @@ export function applyDashboardModernization() {
             this.render();
         };
 
-        ['saas-period', 'saas-date-from', 'saas-date-to', 'saas-estado', 'saas-tecnico', 'saas-status'].forEach((id) => {
+        ['saas-period', 'saas-date-from', 'saas-date-to', 'saas-estado', 'saas-tecnico', 'saas-fornecedor', 'saas-status'].forEach((id) => {
             const element = document.getElementById(id);
             if (element) {
                 element.addEventListener('change', apply);

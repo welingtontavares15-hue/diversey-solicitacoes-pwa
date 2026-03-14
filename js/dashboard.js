@@ -9,6 +9,7 @@
         search: '',
         status: [],
         tecnico: '',
+        fornecedor: '',
         dateFrom: '',
         dateTo: '',
         rangeDays: null,
@@ -26,6 +27,7 @@
             search: '',
             status: [],
             tecnico: '',
+            fornecedor: '',
             dateFrom: period.dateFrom,
             dateTo: period.dateTo,
             rangeDays: period.rangeDays || defaultRange,
@@ -60,6 +62,7 @@
             search: this.recentFilters.search,
             statuses: this.recentFilters.status,
             tecnico: this.recentFilters.tecnico,
+            fornecedor: this.recentFilters.fornecedor,
             dateFrom: this.recentFilters.dateFrom,
             dateTo: this.recentFilters.dateTo,
             rangeDays: useDefaultPeriod ? (this.recentFilters.rangeDays || this.rangeDays) : '',
@@ -77,6 +80,7 @@
             search: this.recentFilters.search,
             statuses: this.recentFilters.status,
             tecnico: this.recentFilters.tecnico,
+            fornecedor: this.recentFilters.fornecedor,
             dateFrom: this.recentFilters.dateFrom,
             dateTo: this.recentFilters.dateTo,
             rangeDays: useDefaultPeriod ? (this.recentFilters.rangeDays || this.rangeDays) : '',
@@ -88,6 +92,7 @@
         this.recentFilters = {
             ...this.recentFilters,
             status: Array.isArray(persisted?.statuses) ? persisted.statuses.slice() : [],
+            fornecedor: persisted?.fornecedor || '',
             dateFrom: persisted?.dateFrom || '',
             dateTo: persisted?.dateTo || '',
             rangeDays: persisted?.rangeDays || '',
@@ -284,6 +289,11 @@
                                     <option value="${t.id}" ${this.recentFilters.tecnico === t.id ? 'selected' : ''}>${Utils.escapeHtml(t.nome)}</option>
                                 `).join('')}
                             </select>
+                            <select id="recent-fornecedor" class="form-control">
+                                <option value="">Fornecedor</option>
+                                <option value="sup-ebst" ${this.recentFilters.fornecedor === 'sup-ebst' ? 'selected' : ''}>EBST</option>
+                                <option value="sup-hobart" ${this.recentFilters.fornecedor === 'sup-hobart' ? 'selected' : ''}>Hobart</option>
+                            </select>
                             <input type="date" id="recent-date-from" class="form-control" value="${this.recentFilters.dateFrom}">
                             <input type="date" id="recent-date-to" class="form-control" value="${this.recentFilters.dateTo}">
                             <button class="btn btn-outline btn-sm" id="recent-clear" title="Limpar filtros">
@@ -370,10 +380,12 @@
             moduleKey: 'dashboard',
             statusOptions: this.getRecentStatusOptions(),
             labels: {
-                tecnico: 'Tecnico'
+                tecnico: 'Técnico',
+                fornecedor: 'Fornecedor'
             },
             resolvers: {
-                tecnico: (value) => DataManager.getTechnicianById(value)?.nome || value
+                tecnico: (value) => DataManager.getTechnicianById(value)?.nome || value,
+                fornecedor: (value) => value === 'sup-hobart' ? 'Hobart' : 'EBST'
             }
         });
 
@@ -407,6 +419,8 @@
             this.rangeDays = defaults.rangeDays;
         } else if (key === 'tecnico') {
             this.recentFilters.tecnico = '';
+        } else if (key === 'fornecedor') {
+            this.recentFilters.fornecedor = '';
         }
 
         this.persistFilters();
@@ -627,75 +641,75 @@
         const dataset = dashboardData.dataset || { records: [] };
         const solicitations = dataset.records || [];
 
-        // Count solicitations by supplier (from items in solicitations)
-        const supplierStats = {
-            'EBST': { count: 0, total: 0 },
-            'Hobart': { count: 0, total: 0 }
-        };
+        // Build dynamic stats per supplier from DataManager
+        const suppliers = DataManager.getSuppliers ? DataManager.getSuppliers() : [];
+        const fallbackSuppliers = [
+            { id: 'sup-ebst', nome: 'EBST' },
+            { id: 'sup-hobart', nome: 'Hobart' }
+        ];
+        const supplierList = suppliers.length ? suppliers : fallbackSuppliers;
+
+        const statsMap = {};
+        supplierList.forEach(s => {
+            statsMap[s.id] = { nome: s.nome, count: 0, total: 0 };
+        });
+        // Guarantee both known suppliers are present even if not in DataManager
+        if (!statsMap['sup-ebst']) statsMap['sup-ebst'] = { nome: 'EBST', count: 0, total: 0 };
+        if (!statsMap['sup-hobart']) statsMap['sup-hobart'] = { nome: 'Hobart', count: 0, total: 0 };
 
         solicitations.forEach(sol => {
-            const hasEbstItem = (sol.itens || []).some(item => {
-                const fornecedorId = item.fornecedorId || 'sup-ebst';
-                return fornecedorId === 'sup-ebst';
-            });
-            const hasHobartItem = (sol.itens || []).some(item => {
-                const fornecedorId = item.fornecedorId || 'sup-ebst';
-                return fornecedorId === 'sup-hobart';
-            });
-
-            if (hasEbstItem) {
-                supplierStats['EBST'].count += 1;
-                const ebstCost = (sol.itens || [])
-                    .filter(item => (item.fornecedorId || 'sup-ebst') === 'sup-ebst')
+            // Use solicitation-level fornecedorId first, fallback to item-level
+            const solFornecedor = sol.fornecedorId || '';
+            if (solFornecedor && statsMap[solFornecedor]) {
+                statsMap[solFornecedor].count += 1;
+                const cost = (sol.itens || [])
                     .reduce((sum, item) => sum + (Number(item.valor || 0) * Number(item.quantidade || 1)), 0);
-                supplierStats['EBST'].total += ebstCost;
-            }
-
-            if (hasHobartItem) {
-                supplierStats['Hobart'].count += 1;
-                const hobartCost = (sol.itens || [])
-                    .filter(item => (item.fornecedorId || 'sup-ebst') === 'sup-hobart')
-                    .reduce((sum, item) => sum + (Number(item.valor || 0) * Number(item.quantidade || 1)), 0);
-                supplierStats['Hobart'].total += hobartCost;
+                statsMap[solFornecedor].total += cost;
+            } else {
+                // Legacy: infer from item-level fornecedorId
+                const supplierIds = [...new Set((sol.itens || [])
+                    .map(item => item.fornecedorId || 'sup-ebst'))];
+                supplierIds.forEach(sid => {
+                    if (!statsMap[sid]) return;
+                    statsMap[sid].count += 1;
+                    const cost = (sol.itens || [])
+                        .filter(item => (item.fornecedorId || 'sup-ebst') === sid)
+                        .reduce((sum, item) => sum + (Number(item.valor || 0) * Number(item.quantidade || 1)), 0);
+                    statsMap[sid].total += cost;
+                });
             }
         });
 
-        return `
-            <div class="supplier-breakdown-list">
+        const totalAll = Object.values(statsMap).reduce((s, v) => s + v.total, 0);
+
+        const rows = Object.values(statsMap).map(stat => {
+            const pct = totalAll > 0 ? Math.round((stat.total / totalAll) * 100) : 0;
+            return `
                 <div class="supplier-item">
                     <div class="supplier-label">
                         <i class="fas fa-industry"></i>
-                        <span><strong>EBST</strong></span>
+                        <span><strong>${Utils.escapeHtml(stat.nome)}</strong></span>
                     </div>
                     <div class="supplier-stats">
                         <div class="supplier-stat-item">
                             <span class="text-muted">Solicitações:</span>
-                            <strong>${Utils.formatNumber(supplierStats['EBST'].count)}</strong>
+                            <strong>${Utils.formatNumber(stat.count)}</strong>
                         </div>
                         <div class="supplier-stat-item">
                             <span class="text-muted">Total:</span>
-                            <strong>${Utils.formatCurrency(supplierStats['EBST'].total)}</strong>
+                            <strong>${Utils.formatCurrency(stat.total)}</strong>
+                        </div>
+                        <div class="supplier-stat-item" style="width:100%;margin-top:6px;">
+                            <div style="background:var(--border-color);border-radius:4px;height:5px;overflow:hidden;">
+                                <div style="width:${pct}%;height:100%;background:var(--primary-color);border-radius:4px;transition:width 0.4s;"></div>
+                            </div>
+                            <span class="text-muted" style="font-size:0.72rem;">${pct}% do total</span>
                         </div>
                     </div>
-                </div>
-                <div class="supplier-item">
-                    <div class="supplier-label">
-                        <i class="fas fa-industry"></i>
-                        <span><strong>Hobart</strong></span>
-                    </div>
-                    <div class="supplier-stats">
-                        <div class="supplier-stat-item">
-                            <span class="text-muted">Solicitações:</span>
-                            <strong>${Utils.formatNumber(supplierStats['Hobart'].count)}</strong>
-                        </div>
-                        <div class="supplier-stat-item">
-                            <span class="text-muted">Total:</span>
-                            <strong>${Utils.formatCurrency(supplierStats['Hobart'].total)}</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+                </div>`;
+        }).join('');
+
+        return `<div class="supplier-breakdown-list">${rows}</div>`;
     },
 
     renderRegionRanking(regions = []) {
@@ -859,7 +873,7 @@
             searchInput.addEventListener('input', Utils.debounce(() => this.applyRecentFilters(), 250));
         }
 
-        ['recent-tecnico', 'recent-date-from', 'recent-date-to'].forEach(id => {
+        ['recent-tecnico', 'recent-fornecedor', 'recent-date-from', 'recent-date-to'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 el.addEventListener('change', () => this.applyRecentFilters());
@@ -898,6 +912,7 @@
         this.recentFilters.search = document.getElementById('recent-search')?.value || '';
         this.recentFilters.status = Array.from(document.querySelectorAll('[data-status-group="recent-status"]:checked')).map(option => option.value);
         this.recentFilters.tecnico = document.getElementById('recent-tecnico')?.value || '';
+        this.recentFilters.fornecedor = document.getElementById('recent-fornecedor')?.value || '';
         this.recentFilters.dateFrom = document.getElementById('recent-date-from')?.value || '';
         this.recentFilters.dateTo = document.getElementById('recent-date-to')?.value || '';
         const hasManualPeriod = Boolean(this.recentFilters.dateFrom || this.recentFilters.dateTo);
@@ -909,6 +924,7 @@
             search: this.recentFilters.search,
             statuses: this.recentFilters.status,
             tecnico: this.recentFilters.tecnico,
+            fornecedor: this.recentFilters.fornecedor,
             dateFrom: this.recentFilters.dateFrom,
             dateTo: this.recentFilters.dateTo,
             rangeDays: this.recentFilters.useDefaultPeriod !== false ? (this.recentFilters.rangeDays || this.rangeDays) : '',
@@ -921,6 +937,7 @@
         this.recentFilters = {
             ...this.recentFilters,
             status: normalized.statuses,
+            fornecedor: normalized.fornecedor || this.recentFilters.fornecedor,
             dateFrom: normalized.dateFrom,
             dateTo: normalized.dateTo,
             rangeDays: normalized.useDefaultPeriod ? normalized.rangeDays : '',
@@ -996,6 +1013,7 @@
         return !!(
             this.recentFilters.search ||
             this.recentFilters.tecnico ||
+            this.recentFilters.fornecedor ||
             (Array.isArray(this.recentFilters.status) && this.recentFilters.status.length > 0) ||
             this.recentFilters.dateFrom !== defaults.dateFrom ||
             this.recentFilters.dateTo !== defaults.dateTo ||
