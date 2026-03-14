@@ -785,7 +785,7 @@ const Relatorios = {
         );
 
         return `
-            <details class="filter-panel compact report-filter-panel" ${hasActiveFilters ? 'open' : ''}>
+            <details class="filter-panel compact report-filter-panel" open>
                 <summary class="filter-panel-toggle">${hasActiveFilters ? 'Filtros ativos' : 'Filtros do relatório'}</summary>
                 <div class="filters-bar mb-3 filter-panel-body" style="background: var(--bg-tertiary);">
                     <div class="search-box">
