@@ -1259,10 +1259,10 @@ body.dark-mode .main-header {
 }
 
 .kpi-content .kpi-value {
-    font-size: 1.75rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: var(--text-primary);
-    line-height: 1;
+    line-height: 1.15;
     letter-spacing: -0.02em;
 }
 
@@ -2506,7 +2506,7 @@ body.dark-mode .loading-overlay {
     }
     
     .kpi-content .kpi-value {
-        font-size: 1.5rem;
+        font-size: 1.1rem;
     }
 }
 
@@ -2669,7 +2669,7 @@ body.dark-mode .loading-overlay {
 }
 
 .metric-card .kpi-value {
-    font-size: 1.6rem;
+    font-size: 1.15rem;
     font-weight: 600;
     line-height: 1.2;
 }
@@ -2910,7 +2910,7 @@ body.dark-mode .loading-overlay {
 }
 
 .kpi-content .kpi-value {
-    font-size: clamp(1.5rem, 1.2rem + 0.75vw, 2.1rem);
+    font-size: clamp(1.0rem, 0.85rem + 0.35vw, 1.25rem);
     line-height: 1.15;
     white-space: normal;
     overflow-wrap: anywhere;
@@ -2954,7 +2954,7 @@ body.dark-mode .loading-overlay {
 }
 
 .metric-card .kpi-content .kpi-value {
-    font-size: 1.6rem;
+    font-size: 1.2rem;
     font-weight: 600;
     line-height: 1.2;
 }
@@ -3029,7 +3029,7 @@ body {
 }
 
 .kpi-content .kpi-value {
-    font-size: 28px;
+    font-size: 18px;
     font-weight: 700;
 }
 
@@ -5056,7 +5056,7 @@ h6 {
 
 .kpi-value,
 .metric-card .kpi-content .kpi-value {
-    font-size: clamp(1.35rem, 1.8vw, 1.9rem);
+    font-size: clamp(0.95rem, 1.05vw, 1.25rem);
     font-weight: 800;
     color: var(--exec-ink-900);
     line-height: 1.15;
