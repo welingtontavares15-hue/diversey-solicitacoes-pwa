@@ -5698,3 +5698,69 @@ body.dark-mode .status-filter-option:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/* ===== Supplier Breakdown (Dashboard Card) ===== */
+.supplier-breakdown-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.supplier-item {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.supplier-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.supplier-label i {
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.supplier-label strong {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.supplier-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.supplier-stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.supplier-stat-item .text-muted {
+    font-size: 0.75rem;
+    margin-bottom: 0.15rem;
+}
+
+.supplier-stat-item strong {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+@media (max-width: 480px) {
+    .supplier-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .supplier-stats {
+        width: 100%;
+        margin-top: 0.5rem;
+        justify-content: space-around;
+    }
+}

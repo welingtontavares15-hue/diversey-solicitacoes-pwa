@@ -16,6 +16,7 @@ const Relatorios = {
         tecnico: '',
         regiao: '',
         cliente: '',
+        fornecedor: '',
         rangeDays: '',
         useDefaultPeriod: true
     },
@@ -40,6 +41,7 @@ const Relatorios = {
             tecnico: '',
             regiao: '',
             cliente: '',
+            fornecedor: '',
             rangeDays: period.rangeDays || defaultRange,
             useDefaultPeriod: true
         };
@@ -62,6 +64,7 @@ const Relatorios = {
             statuses: Array.isArray(restored?.statuses)
                 ? restored.statuses.slice()
                 : (Array.isArray(restored?.status) ? restored.status.slice() : []),
+            fornecedor: restored?.fornecedor || '',
             useDefaultPeriod: restored?.useDefaultPeriod !== false
         };
         this._filtersInitialized = true;
@@ -76,6 +79,7 @@ const Relatorios = {
             tecnico: this.filters.tecnico,
             regiao: this.filters.regiao,
             cliente: this.filters.cliente,
+            fornecedor: this.filters.fornecedor,
             dateFrom: this.filters.dateFrom,
             dateTo: this.filters.dateTo,
             rangeDays: useDefaultPeriod ? this.filters.rangeDays : '',
@@ -95,6 +99,7 @@ const Relatorios = {
             tecnico: this.filters.tecnico,
             regiao: this.filters.regiao,
             cliente: this.filters.cliente,
+            fornecedor: this.filters.fornecedor,
             dateFrom: this.filters.dateFrom,
             dateTo: this.filters.dateTo,
             rangeDays: useDefaultPeriod ? this.filters.rangeDays : '',
@@ -110,6 +115,7 @@ const Relatorios = {
             tecnico: persisted?.tecnico || '',
             regiao: persisted?.regiao || '',
             cliente: persisted?.cliente || '',
+            fornecedor: persisted?.fornecedor || '',
             dateFrom: persisted?.dateFrom || '',
             dateTo: persisted?.dateTo || '',
             rangeDays: persisted?.rangeDays || '',
@@ -222,10 +228,12 @@ const Relatorios = {
             labels: {
                 tecnico: 'Tecnico',
                 regiao: 'Regiao',
-                cliente: 'Cliente'
+                cliente: 'Cliente',
+                fornecedor: 'Fornecedor'
             },
             resolvers: {
-                tecnico: (value) => DataManager.getTechnicianById(value)?.nome || value
+                tecnico: (value) => DataManager.getTechnicianById(value)?.nome || value,
+                fornecedor: (value) => this.getSupplierLabel(value)
             }
         });
 
@@ -257,6 +265,8 @@ const Relatorios = {
             this.filters.dateTo = defaults.dateTo;
             this.filters.rangeDays = defaults.rangeDays;
             this.filters.useDefaultPeriod = true;
+        } else if (key === 'fornecedor') {
+            this.filters.fornecedor = '';
         } else if (Object.prototype.hasOwnProperty.call(this.filters, key)) {
             this.filters[key] = '';
         }
@@ -767,6 +777,7 @@ const Relatorios = {
             this.filters.tecnico ||
             this.filters.regiao ||
             this.filters.cliente ||
+            this.filters.fornecedor ||
             selectedStatuses.length > 0 ||
             this.filters.useDefaultPeriod === false ||
             this.filters.dateFrom !== defaults.dateFrom ||
@@ -825,6 +836,14 @@ const Relatorios = {
                             `).join('')}
                         </select>
                     </div>
+                    <div class="filter-group">
+                        <label>Fornecedor:</label>
+                        <select id="report-fornecedor" class="form-control">
+                            <option value="">Todos</option>
+                            <option value="sup-ebst" ${this.filters.fornecedor === 'sup-ebst' ? 'selected' : ''}>EBST</option>
+                            <option value="sup-hobart" ${this.filters.fornecedor === 'sup-hobart' ? 'selected' : ''}>Hobart</option>
+                        </select>
+                    </div>
                     <button class="btn btn-primary" onclick="Relatorios.applyFilters()">
                         <i class="fas fa-filter"></i> Filtrar
                     </button>
@@ -852,7 +871,7 @@ const Relatorios = {
             search.addEventListener('input', Utils.debounce(() => this.applyFilters(), 250));
         }
 
-        ['report-date-from', 'report-date-to', 'report-tecnico', 'report-regiao', 'report-cliente'].forEach(id => {
+        ['report-date-from', 'report-date-to', 'report-tecnico', 'report-regiao', 'report-cliente', 'report-fornecedor'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 el.addEventListener('change', () => this.applyFilters());
@@ -999,6 +1018,7 @@ const Relatorios = {
         this.filters.tecnico = document.getElementById('report-tecnico')?.value || '';
         this.filters.regiao = document.getElementById('report-regiao')?.value || '';
         this.filters.cliente = document.getElementById('report-cliente')?.value || '';
+        this.filters.fornecedor = document.getElementById('report-fornecedor')?.value || '';
         const hasManualPeriod = Boolean(this.filters.dateFrom || this.filters.dateTo);
         this.filters.useDefaultPeriod = !hasManualPeriod;
         if (hasManualPeriod) {
@@ -1010,6 +1030,7 @@ const Relatorios = {
             tecnico: this.filters.tecnico,
             regiao: this.filters.regiao,
             cliente: this.filters.cliente,
+            fornecedor: this.filters.fornecedor,
             dateFrom: this.filters.dateFrom,
             dateTo: this.filters.dateTo,
             rangeDays: this.filters.useDefaultPeriod !== false ? this.filters.rangeDays : '',
@@ -1026,6 +1047,7 @@ const Relatorios = {
             tecnico: normalized.tecnico,
             regiao: normalized.regiao,
             cliente: normalized.cliente,
+            fornecedor: normalized.fornecedor,
             dateFrom: normalized.dateFrom,
             dateTo: normalized.dateTo,
             rangeDays: normalized.useDefaultPeriod ? normalized.rangeDays : '',
@@ -1549,6 +1571,20 @@ const Relatorios = {
         return DataManager.getTechnicians()
             .filter(tech => tech.ativo !== false)
             .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    },
+
+    /**
+     * Get supplier label for display
+     */
+    getSupplierLabel(supplierId) {
+        switch (supplierId) {
+            case 'sup-ebst':
+                return 'EBST';
+            case 'sup-hobart':
+                return 'Hobart';
+            default:
+                return supplierId;
+        }
     },
 
     /**

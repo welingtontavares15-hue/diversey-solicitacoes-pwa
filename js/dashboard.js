@@ -207,6 +207,14 @@
                         ${this.renderTopPieces(dashboardData.topPieces)}
                     </div>
                 </div>
+                <div class="card compact-card">
+                    <div class="card-header">
+                        <h4><i class="fas fa-industry"></i> Por Fornecedor</h4>
+                    </div>
+                    <div class="card-body">
+                        ${this.renderSupplierBreakdown(dashboardData)}
+                    </div>
+                </div>
             </div>
 
             <div class="card mt-3 compact-card"> 
@@ -611,6 +619,81 @@
                         `).join('')}
                     </tbody>
                 </table>
+            </div>
+        `;
+    },
+
+    renderSupplierBreakdown(dashboardData) {
+        const dataset = dashboardData.dataset || { records: [] };
+        const solicitations = dataset.records || [];
+
+        // Count solicitations by supplier (from items in solicitations)
+        const supplierStats = {
+            'EBST': { count: 0, total: 0 },
+            'Hobart': { count: 0, total: 0 }
+        };
+
+        solicitations.forEach(sol => {
+            const hasEbstItem = (sol.itens || []).some(item => {
+                const fornecedorId = item.fornecedorId || 'sup-ebst';
+                return fornecedorId === 'sup-ebst';
+            });
+            const hasHobartItem = (sol.itens || []).some(item => {
+                const fornecedorId = item.fornecedorId || 'sup-ebst';
+                return fornecedorId === 'sup-hobart';
+            });
+
+            if (hasEbstItem) {
+                supplierStats['EBST'].count += 1;
+                const ebstCost = (sol.itens || [])
+                    .filter(item => (item.fornecedorId || 'sup-ebst') === 'sup-ebst')
+                    .reduce((sum, item) => sum + (Number(item.valor || 0) * Number(item.quantidade || 1)), 0);
+                supplierStats['EBST'].total += ebstCost;
+            }
+
+            if (hasHobartItem) {
+                supplierStats['Hobart'].count += 1;
+                const hobartCost = (sol.itens || [])
+                    .filter(item => (item.fornecedorId || 'sup-ebst') === 'sup-hobart')
+                    .reduce((sum, item) => sum + (Number(item.valor || 0) * Number(item.quantidade || 1)), 0);
+                supplierStats['Hobart'].total += hobartCost;
+            }
+        });
+
+        return `
+            <div class="supplier-breakdown-list">
+                <div class="supplier-item">
+                    <div class="supplier-label">
+                        <i class="fas fa-industry"></i>
+                        <span><strong>EBST</strong></span>
+                    </div>
+                    <div class="supplier-stats">
+                        <div class="supplier-stat-item">
+                            <span class="text-muted">Solicitações:</span>
+                            <strong>${Utils.formatNumber(supplierStats['EBST'].count)}</strong>
+                        </div>
+                        <div class="supplier-stat-item">
+                            <span class="text-muted">Total:</span>
+                            <strong>${Utils.formatCurrency(supplierStats['EBST'].total)}</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="supplier-item">
+                    <div class="supplier-label">
+                        <i class="fas fa-industry"></i>
+                        <span><strong>Hobart</strong></span>
+                    </div>
+                    <div class="supplier-stats">
+                        <div class="supplier-stat-item">
+                            <span class="text-muted">Solicitações:</span>
+                            <strong>${Utils.formatNumber(supplierStats['Hobart'].count)}</strong>
+                        </div>
+                        <div class="supplier-stat-item">
+                            <span class="text-muted">Total:</span>
+                            <strong>${Utils.formatCurrency(supplierStats['Hobart'].total)}</strong>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
     },

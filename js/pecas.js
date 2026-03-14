@@ -454,7 +454,13 @@ const Pecas = {
                         <li>Coluna: <code>categoria</code> - Categoria</li>
                         <li>Coluna: <code>valor</code> - Valor unitário</li>
                         <li>Coluna: <code>unidade</code> - Unidade de medida</li>
+                        <li>Coluna: <code>fornecedorId</code> - ID do fornecedor (sup-ebst ou sup-hobart, padrão: sup-ebst)</li>
                     </ul>
+                </div>
+                <div class="mt-3">
+                    <a href="javascript:Pecas.downloadTemplate()" class="btn btn-sm btn-outline">
+                        <i class="fas fa-download"></i> Baixar Modelo CSV
+                    </a>
                 </div>
             </div>
             <div class="modal-footer">
@@ -513,22 +519,50 @@ const Pecas = {
      */
     exportCatalog() {
         const parts = DataManager.getParts();
-        
+
         if (parts.length === 0) {
             Utils.showToast('Não há peças para exportar', 'warning');
             return;
         }
-        
+
         const data = parts.map(p => ({
             codigo: p.codigo,
             descricao: p.descricao,
             categoria: p.categoria || '',
             valor: p.valor,
-            unidade: p.unidade || 'UN'
+            unidade: p.unidade || 'UN',
+            fornecedorId: p.fornecedorId || 'sup-ebst'
         }));
-        
+
         Utils.exportToExcel(data, 'catalogo_pecas.xlsx', 'Peças');
         Utils.showToast('Catálogo exportado com sucesso', 'success');
+    },
+
+    /**
+     * Download import template
+     */
+    downloadTemplate() {
+        const templateData = [
+            {
+                codigo: 'COMP-001',
+                descricao: 'Componente de exemplo',
+                categoria: 'Eletrônica',
+                valor: 150.50,
+                unidade: 'UN',
+                fornecedorId: 'sup-ebst'
+            },
+            {
+                codigo: 'PART-002',
+                descricao: 'Peça de exemplo 2',
+                categoria: 'Mecânica',
+                valor: 85.00,
+                unidade: 'PC',
+                fornecedorId: 'sup-hobart'
+            }
+        ];
+
+        Utils.exportToExcel(templateData, 'modelo_importacao_pecas.xlsx', 'Modelo');
+        Utils.showToast('Modelo de importação baixado com sucesso', 'success');
     },
 
     // ========== AUTO-COMPLETE COMPONENT ==========
