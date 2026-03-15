@@ -3518,6 +3518,16 @@ body {
     align-items: end;
 }
 
+/* Ensure each filter field within the dashboard grid aligns its label and control
+ * vertically, similar to the report filters. Without this flex layout the
+ * labels and inputs may not line up consistently when the grid wraps. The gap
+ * between label and control matches the report filter styling for a cohesive look. */
+.dashboard-filters-grid .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
 .secondary-kpi-grid {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }

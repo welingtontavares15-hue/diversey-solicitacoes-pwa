@@ -784,6 +784,14 @@ const Relatorios = {
             this.filters.dateTo !== defaults.dateTo
         );
 
+        // Generate dynamic supplier options. We prefer to read the list of suppliers
+        // from DataManager so that any new suppliers added via the admin appear
+        // automatically in the filter dropdown. Fallback to an empty list if
+        // DataManager or getSuppliers() is undefined.
+        const suppliers = (typeof DataManager !== 'undefined' ?
+            (DataManager.getSuppliers ? DataManager.getSuppliers().filter((s) => s.ativo !== false) : [])
+            : []);
+
         return `
             <details class="filter-panel compact report-filter-panel" open>
                 <summary class="filter-panel-toggle">${hasActiveFilters ? 'Filtros ativos' : 'Filtros do relatório'}</summary>
@@ -799,7 +807,7 @@ const Relatorios = {
                         <label>Até:</label>
                         <input type="date" id="report-date-to" class="form-control" value="${this.filters.dateTo}">
                     </div>
-                    <div class="filter-group">
+                    <div class="filter-group filter-group-span-2">
                         <label>Status:</label>
                         ${this.renderStatusMultiSelect('report-status')}
                     </div>
@@ -840,8 +848,7 @@ const Relatorios = {
                         <label>Fornecedor:</label>
                         <select id="report-fornecedor" class="form-control">
                             <option value="">Todos</option>
-                            <option value="sup-ebst" ${this.filters.fornecedor === 'sup-ebst' ? 'selected' : ''}>EBST</option>
-                            <option value="sup-hobart" ${this.filters.fornecedor === 'sup-hobart' ? 'selected' : ''}>Hobart</option>
+                            ${suppliers.map((s) => `<option value="${Utils.escapeHtml(s.id)}" ${this.filters.fornecedor === s.id ? 'selected' : ''}>${Utils.escapeHtml(s.nome)}</option>`).join('')}
                         </select>
                     </div>
                     <button class="btn btn-primary" onclick="Relatorios.applyFilters()">
@@ -1577,13 +1584,22 @@ const Relatorios = {
      * Get supplier label for display
      */
     getSupplierLabel(supplierId) {
+        // Try to resolve the supplier name dynamically using DataManager if available.
+        // Fall back to friendly names for known suppliers and finally the raw ID.
         switch (supplierId) {
-            case 'sup-ebst':
-                return 'EBST';
-            case 'sup-hobart':
-                return 'Hobart';
-            default:
-                return supplierId;
+        case 'sup-ebst':
+            return 'EBST';
+        case 'sup-hobart':
+            return 'Hobart';
+        default: {
+            if (typeof DataManager !== 'undefined' && typeof DataManager.getSuppliers === 'function') {
+                const found = DataManager.getSuppliers().find((s) => s.id === supplierId);
+                if (found) {
+                    return found.nome || supplierId;
+                }
+            }
+            return supplierId;
+        }
         }
     },
 
