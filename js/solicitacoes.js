@@ -1530,91 +1530,30 @@ const Solicitacoes = {
                                    value="${Utils.escapeHtml(this.currentSolicitation.cliente || '')}"
                                    placeholder="Cliente / unidade">
                         </div>
-                    </div>
-                    
-                    <!-- Supplier Selection — dropdown selector -->
-                    <div class="form-group" style="margin-bottom:16px">
-                        <label style="font-weight:700;font-size:0.87rem;color:#374151;margin-bottom:8px;display:block;text-transform:uppercase;letter-spacing:.4px">
-                            <i class="fas fa-truck" style="margin-right:5px;color:#6b7280"></i>Fornecedor *
-                        </label>
-                        ${isEdit && this.currentSolicitation.fornecedorId ? `
-                            <!-- LOCKED: edit mode — supplier already defined -->
-                            <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px">
-                                <div style="width:34px;height:34px;border-radius:50%;background:${this.currentSolicitation.fornecedorId === 'sup-hobart' ? '#d97706' : '#2563eb'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                                    <i class="fas fa-industry" style="color:#fff;font-size:1rem"></i>
-                                </div>
-                                <div style="flex:1">
-                                    <div style="font-weight:700;font-size:0.95rem;color:#111">${this.currentSolicitation.fornecedorId === 'sup-hobart' ? 'Hobart' : 'EBST'}</div>
-                                    <div style="font-size:0.74rem;color:#9ca3af;margin-top:1px">Fornecedor definido na abertura</div>
-                                </div>
-                                <span style="display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:3px 10px;font-size:.72rem;font-weight:600;${this.currentSolicitation.fornecedorId === 'sup-hobart' ? 'background:#fef3c7;color:#92400e' : 'background:#dbeafe;color:#1d4ed8'}">
-                                    <i class="fas fa-lock" style="font-size:.6rem"></i> Bloqueado
-                                </span>
-                            </div>
-                            <input type="hidden" id="sol-fornecedor" value="${this.currentSolicitation.fornecedorId}">
-                        ` : (() => {
-                            const selEbst   = this.currentSolicitation.fornecedorId === 'sup-ebst';
-                            const selHobart = this.currentSolicitation.fornecedorId === 'sup-hobart';
-                            const selName   = selEbst ? 'EBST' : (selHobart ? 'Hobart' : null);
-                            const trigBg    = selEbst ? '#eff6ff' : (selHobart ? '#fffbeb' : '#fff');
-                            const trigBorder= selEbst ? '#2563eb' : (selHobart ? '#d97706' : '#d1d5db');
-                            const icoBg     = selEbst ? '#2563eb' : (selHobart ? '#d97706' : '#f1f5f9');
-                            const icoColor  = (selEbst || selHobart) ? '#fff' : '#9ca3af';
-                            const nameColor = selEbst ? '#1d4ed8' : (selHobart ? '#92400e' : '#9ca3af');
-                            return `
-                            <!-- Clickable trigger row -->
-                            <div id="sup-trigger"
-                                onclick="Solicitacoes.toggleFornecedorDropdown()"
-                                style="display:flex;align-items:center;gap:12px;padding:11px 14px;border:1.5px solid ${trigBorder};border-radius:8px;cursor:pointer;background:${trigBg};transition:border-color .15s,box-shadow .15s;user-select:none">
-                                <div id="sup-t-ico" style="width:34px;height:34px;min-width:34px;border-radius:50%;background:${icoBg};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s">
-                                    <i class="fas fa-industry" style="color:${icoColor};font-size:1rem;transition:color .15s"></i>
-                                </div>
-                                <div style="flex:1;min-width:0">
-                                    <div id="sup-t-name" style="font-weight:700;font-size:.95rem;color:${nameColor};margin-bottom:1px">${selName || 'Selecione o fornecedor...'}</div>
-                                    <div id="sup-t-desc" style="font-size:.74rem;color:#9ca3af">${selName ? 'Catálogo de peças ' + selName + ' carregado' : 'Clique para ver as opções disponíveis'}</div>
-                                </div>
-                                <i class="fas fa-chevron-down" id="sup-t-arrow" style="color:#9ca3af;font-size:.75rem;transition:transform .2s"></i>
-                            </div>
-
-                            <!-- Dropdown options (hidden by default) -->
-                            <div id="sup-dropdown" style="display:none;border:1.5px solid #3b82f6;border-top:none;border-radius:0 0 8px 8px;overflow:hidden;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.1);position:relative;z-index:50">
-
-                                <div onclick="Solicitacoes.selectFornecedor('sup-ebst')"
-                                    style="display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;border-bottom:1px solid #f1f5f9;transition:background .12s"
-                                    onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
-                                    <div style="width:38px;height:38px;min-width:38px;border-radius:50%;background:#f8fafc;border:1.5px solid #e2e8f0;display:flex;align-items:center;justify-content:center">
-                                        <i class="fas fa-industry" style="color:#6b7280;font-size:.95rem"></i>
-                                    </div>
-                                    <div style="flex:1;min-width:0">
-                                        <div style="font-weight:700;font-size:.93rem;color:#111;margin-bottom:1px">EBST</div>
-                                        <div style="font-size:.74rem;color:#9ca3af">Peças e componentes — catálogo EBST</div>
-                                    </div>
-                                    <span style="display:inline-flex;align-items:center;gap:3px;border-radius:20px;padding:2px 9px;font-size:.68rem;font-weight:700;background:#dbeafe;color:#1d4ed8">EBST</span>
-                                </div>
-
-                                <div onclick="Solicitacoes.selectFornecedor('sup-hobart')"
-                                    style="display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;transition:background .12s"
-                                    onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
-                                    <div style="width:38px;height:38px;min-width:38px;border-radius:50%;background:#f8fafc;border:1.5px solid #e2e8f0;display:flex;align-items:center;justify-content:center">
-                                        <i class="fas fa-industry" style="color:#6b7280;font-size:.95rem"></i>
-                                    </div>
-                                    <div style="flex:1;min-width:0">
-                                        <div style="font-weight:700;font-size:.93rem;color:#111;margin-bottom:1px">Hobart</div>
-                                        <div style="font-size:.74rem;color:#9ca3af">Peças e componentes — catálogo Hobart</div>
-                                    </div>
-                                    <span style="display:inline-flex;align-items:center;gap:3px;border-radius:20px;padding:2px 9px;font-size:.68rem;font-weight:700;background:#fef3c7;color:#92400e">Hobart</span>
-                                </div>
-
-                            </div>
-
-                            <input type="hidden" id="sol-fornecedor" value="${this.currentSolicitation.fornecedorId || ''}">
-                            `;
-                        })()}
+                        <div class="form-group">
+                            <label for="sol-fornecedor-sel">Fornecedor *</label>
+                            ${isEdit && this.currentSolicitation.fornecedorId ? `
+                                <p><strong>${this.currentSolicitation.fornecedorId === 'sup-hobart' ? 'Hobart' : 'EBST'}</strong></p>
+                                <input type="hidden" id="sol-fornecedor" value="${this.currentSolicitation.fornecedorId}">
+                            ` : `
+                                <select id="sol-fornecedor-sel" class="form-control"
+                                        onchange="Solicitacoes.selectFornecedor(this.value)" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="sup-ebst"   ${this.currentSolicitation.fornecedorId === 'sup-ebst'   ? 'selected' : ''}>EBST</option>
+                                    <option value="sup-hobart" ${this.currentSolicitation.fornecedorId === 'sup-hobart' ? 'selected' : ''}>Hobart</option>
+                                </select>
+                                <input type="hidden" id="sol-fornecedor" value="${this.currentSolicitation.fornecedorId || ''}">
+                                <small style="display:flex;align-items:center;gap:5px;margin-top:5px;color:#6b7280;font-size:0.75rem">
+                                    <i class="fas fa-info-circle" style="color:#3b82f6;flex-shrink:0"></i>
+                                    Peças de fornecedores diferentes requerem solicitações separadas.
+                                </small>
+                            `}
+                        </div>
                     </div>
 
                     <!-- Parts Selection with Auto-complete -->
-                    <div class="form-group" id="parts-section" style="${this.currentSolicitation.fornecedorId ? '' : 'opacity:0.35;pointer-events:none'}">
-                        <label>Adicionar Peça${this.currentSolicitation.fornecedorId ? ` <span style="display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:2px 9px;font-size:0.72rem;font-weight:600;${this.currentSolicitation.fornecedorId === 'sup-hobart' ? 'background:#fef3c7;color:#92400e' : 'background:#dbeafe;color:#1d4ed8'}">${this.currentSolicitation.fornecedorId === 'sup-hobart' ? 'Hobart' : 'EBST'}</span>` : ''}</label>
+                    <div class="form-group" id="parts-section">
+                        <label>Adicionar Peça</label>
                         <div id="parts-autocomplete"></div>
                     </div>
 
@@ -1688,35 +1627,23 @@ const Solicitacoes = {
     },
 
     /**
-     * Toggle the supplier dropdown open/closed
-     */
-    toggleFornecedorDropdown() {
-        const trigger  = document.getElementById('sup-trigger');
-        const dropdown = document.getElementById('sup-dropdown');
-        const arrow    = document.getElementById('sup-t-arrow');
-        if (!dropdown) return;
-
-        const isOpen = dropdown.style.display !== 'none';
-        if (isOpen) {
-            dropdown.style.display = 'none';
-            if (trigger) { trigger.style.borderColor = this.currentSolicitation.fornecedorId === 'sup-hobart' ? '#d97706' : (this.currentSolicitation.fornecedorId ? '#2563eb' : '#d1d5db'); trigger.style.borderRadius = '8px'; }
-            if (arrow)   arrow.style.transform = '';
-        } else {
-            dropdown.style.display = 'block';
-            if (trigger) { trigger.style.borderColor = '#3b82f6'; trigger.style.borderRadius = '8px 8px 0 0'; trigger.style.borderBottom = 'none'; }
-            if (arrow)   arrow.style.transform = 'rotate(180deg)';
-        }
-    },
-
-    /**
-     * Select supplier via dropdown option click in Nova Solicitação
+     * Called when the Fornecedor <select> changes.
+     * Filters the parts autocomplete and unlocks the parts section.
      */
     selectFornecedor(fornecedorId) {
+        if (!fornecedorId) return;
+
         const hasItems = this.currentSolicitation.itens && this.currentSolicitation.itens.length > 0;
         const prev = this.currentSolicitation.fornecedorId;
 
+        // Warn if switching supplier with existing items
         if (hasItems && prev && prev !== fornecedorId) {
-            if (!confirm('Trocar o fornecedor vai remover os itens já adicionados. Deseja continuar?')) return;
+            if (!confirm('Trocar o fornecedor removerá todos os itens já adicionados.\n\nLembre-se: cada solicitação deve conter peças de um único fornecedor. Para solicitar peças da EBST e da Hobart, abra duas solicitações separadas.\n\nDeseja continuar e limpar os itens?')) {
+                // Revert the select back to previous value
+                const sel = document.getElementById('sol-fornecedor-sel');
+                if (sel) sel.value = prev;
+                return;
+            }
             this.currentSolicitation.itens = [];
             this.currentSolicitation.subtotal = 0;
             this.currentSolicitation.desconto = 0;
@@ -1728,53 +1655,11 @@ const Solicitacoes = {
 
         this.currentSolicitation.fornecedorId = fornecedorId;
 
-        // Update hidden input
+        // Keep hidden input in sync
         const hidden = document.getElementById('sol-fornecedor');
         if (hidden) hidden.value = fornecedorId;
 
-        const isHobart    = fornecedorId === 'sup-hobart';
-        const supName     = isHobart ? 'Hobart' : 'EBST';
-        const activeColor = isHobart ? '#d97706' : '#2563eb';
-        const activeBg    = isHobart ? '#fffbeb'  : '#eff6ff';
-        const activeTxt   = isHobart ? '#92400e'  : '#1d4ed8';
-
-        // Close dropdown and update trigger appearance
-        const dropdown = document.getElementById('sup-dropdown');
-        const trigger  = document.getElementById('sup-trigger');
-        const arrow    = document.getElementById('sup-t-arrow');
-        if (dropdown) dropdown.style.display = 'none';
-        if (arrow)    arrow.style.transform = '';
-        if (trigger) {
-            trigger.style.background    = activeBg;
-            trigger.style.borderColor   = activeColor;
-            trigger.style.borderRadius  = '8px';
-            trigger.style.borderBottom  = '';
-        }
-
-        const ico = document.getElementById('sup-t-ico');
-        if (ico) { ico.style.background = activeColor; ico.querySelector('i').style.color = '#fff'; }
-
-        const nm = document.getElementById('sup-t-name');
-        if (nm) { nm.style.color = activeTxt; nm.textContent = supName; }
-
-        const desc = document.getElementById('sup-t-desc');
-        if (desc) { desc.style.color = '#9ca3af'; desc.textContent = 'Catálogo de peças ' + supName + ' carregado'; }
-
-        // Enable parts section
-        const partsSection = document.getElementById('parts-section');
-        if (partsSection) {
-            partsSection.style.opacity = '1';
-            partsSection.style.pointerEvents = 'auto';
-            const lbl = partsSection.querySelector('label');
-            if (lbl) {
-                const badgeStyle = isHobart
-                    ? 'background:#fef3c7;color:#92400e'
-                    : 'background:#dbeafe;color:#1d4ed8';
-                lbl.innerHTML = `Adicionar Peça <span style="display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:2px 9px;font-size:0.72rem;font-weight:600;${badgeStyle}">${supName}</span>`;
-            }
-        }
-
-        // Reinit autocomplete with new supplier filter
+        // Reinit autocomplete filtered to the chosen supplier
         this._initAutocomplete(fornecedorId);
     },
 
@@ -1939,7 +1824,7 @@ const Solicitacoes = {
         }
 
         if (!fornecedorId) {
-            Utils.showToast('Selecione o fornecedor (EBST ou Hobart) antes de continuar', 'warning');
+            Utils.showToast('Selecione o fornecedor antes de continuar. Caso precise solicitar peças de ambos os fornecedores, abra uma solicitação para cada um.', 'warning');
             return;
         }
 
