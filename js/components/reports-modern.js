@@ -576,10 +576,12 @@ export function applyReportsModernization() {
 
     Relatorios.renderCostFilters = function renderCostFilters() {
         const options = this.getAvailableCostFilters();
+        const suppliers = (typeof DataManager !== 'undefined' ? DataManager.getSuppliers().filter((s) => s.ativo !== false) : []);
 
         return `
             <div class="report-filters-modern">
-                <div class="report-filters-grid">
+                <div class="report-filters-grid-v2">
+                    <!-- Linha 1: Período e Status -->
                     <div class="filter-group">
                         <label>De</label>
                         <input type="date" id="report-date-from" class="form-control" value="${this.filters.dateFrom}">
@@ -588,10 +590,11 @@ export function applyReportsModernization() {
                         <label>Até</label>
                         <input type="date" id="report-date-to" class="form-control" value="${this.filters.dateTo}">
                     </div>
-                    <div class="filter-group filter-group-span-2">
+                    <div class="filter-group rfg-span2">
                         <label>Status</label>
                         ${this.renderStatusMultiSelect('report-status')}
                     </div>
+                    <!-- Linha 2: Filtros operacionais -->
                     <div class="filter-group">
                         <label>Região</label>
                         <select id="report-regiao" class="form-control">
@@ -623,17 +626,20 @@ export function applyReportsModernization() {
                         <label>Fornecedor</label>
                         <select id="report-fornecedor" class="form-control">
                             <option value="">Todos</option>
-                            ${(typeof DataManager !== 'undefined' ? DataManager.getSuppliers().filter((s) => s.ativo !== false) : []).map((s) => `<option value="${Utils.escapeHtml(s.id)}" ${this.filters.fornecedor === s.id ? 'selected' : ''}>${Utils.escapeHtml(s.nome)}</option>`).join('')}
+                            <option value="sup-ebst"   ${this.filters.fornecedor === 'sup-ebst'   ? 'selected' : ''}>EBST</option>
+                            <option value="sup-hobart" ${this.filters.fornecedor === 'sup-hobart' ? 'selected' : ''}>Hobart</option>
+                            ${suppliers.filter(s => s.id !== 'sup-ebst' && s.id !== 'sup-hobart').map((s) => `<option value="${Utils.escapeHtml(s.id)}" ${this.filters.fornecedor === s.id ? 'selected' : ''}>${Utils.escapeHtml(s.nome)}</option>`).join('')}
                         </select>
                     </div>
-                </div>
-                <div class="report-filter-actions">
-                    <button class="btn btn-primary report-primary-action" onclick="Relatorios.applyFilters()">
-                        <i class="fas fa-filter"></i> Filtrar
-                    </button>
-                    <button class="btn btn-outline report-secondary-action" onclick="Relatorios.clearFilters()">
-                        <i class="fas fa-eraser"></i> Limpar
-                    </button>
+                    <!-- Linha 3: Ações -->
+                    <div class="rfg-actions">
+                        <button class="btn btn-primary report-primary-action" onclick="Relatorios.applyFilters()">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                        <button class="btn btn-outline report-secondary-action" onclick="Relatorios.clearFilters()">
+                            <i class="fas fa-eraser"></i> Limpar
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
