@@ -578,9 +578,12 @@ export function applyReportsModernization() {
         const options = this.getAvailableCostFilters();
         const suppliers = (typeof DataManager !== 'undefined' ? DataManager.getSuppliers().filter((s) => s.ativo !== false) : []);
 
+        // Reuse existing grid styles from style.css to ensure consistent alignment.
+        // The grid will automatically wrap elements and align them neatly. We also
+        // expose the status control as a span of two columns for better width.
         return `
             <div class="report-filters-modern">
-                <div class="report-filters-grid-v2">
+                <div class="report-filters-grid">
                     <!-- Linha 1: Período e Status -->
                     <div class="filter-group">
                         <label>De</label>
@@ -590,7 +593,7 @@ export function applyReportsModernization() {
                         <label>Até</label>
                         <input type="date" id="report-date-to" class="form-control" value="${this.filters.dateTo}">
                     </div>
-                    <div class="filter-group rfg-span2">
+                    <div class="filter-group filter-group-span-2">
                         <label>Status</label>
                         ${this.renderStatusMultiSelect('report-status')}
                     </div>
@@ -632,7 +635,7 @@ export function applyReportsModernization() {
                         </select>
                     </div>
                     <!-- Linha 3: Ações -->
-                    <div class="rfg-actions">
+                    <div class="report-filter-actions">
                         <button class="btn btn-primary report-primary-action" onclick="Relatorios.applyFilters()">
                             <i class="fas fa-filter"></i> Filtrar
                         </button>

@@ -5764,3 +5764,31 @@ body.dark-mode .status-filter-option:hover {
         justify-content: space-around;
     }
 }
+
+/*
+ * Custom improvements for report filter alignment
+ *
+ * The supplier filter and other controls introduced in the reports need to
+ * align neatly. By switching the filter container to a CSS grid on
+ * `.report-filter-panel` we ensure each control has a consistent width
+ * and wraps gracefully on smaller screens. The search box spans two
+ * columns to provide extra space for typing. These rules apply only
+ * within report filter panels, leaving other filter bars (e.g. dashboard
+ * quick filters) untouched.
+ */
+.report-filter-panel .filters-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.report-filter-panel .filters-bar .search-box {
+    grid-column: span 2;
+}
+
+.report-filter-panel .filters-bar .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
