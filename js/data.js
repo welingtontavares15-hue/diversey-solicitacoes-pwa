@@ -2695,11 +2695,6 @@ const DataManager = {
                 
                 const existing = parts.find(p => p.codigo === codigo);
                 
-                const rawFornecedor = row.fornecedorId || row.FornecedorId || row.fornecedor_id || row.Fornecedor || '';
-                const fornecedorId = ['sup-ebst', 'sup-hobart'].includes(String(rawFornecedor).trim().toLowerCase())
-                    ? String(rawFornecedor).trim().toLowerCase()
-                    : (String(rawFornecedor).trim().toLowerCase().includes('hobart') ? 'sup-hobart' : 'sup-ebst');
-
                 const part = {
                     id: existing?.id || Utils.generateId(),
                     codigo: String(codigo).trim(),
@@ -2707,7 +2702,6 @@ const DataManager = {
                     categoria: row.categoria || row.Categoria || 'Geral',
                     valor: parseFloat(row.valor || row.Valor || 0),
                     unidade: row.unidade || row.Unidade || 'UN',
-                    fornecedorId: fornecedorId,
                     ativo: true
                 };
                 

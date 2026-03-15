@@ -8,7 +8,6 @@ const Pecas = {
     itemsPerPage: 10,
     searchQuery: '',
     categoryFilter: '',
-    supplierFilter: '',
     autoSyncRequested: false,
 
     /**
@@ -51,14 +50,6 @@ const Pecas = {
                     <select id="category-filter" class="form-control" onchange="Pecas.filterByCategory()">
                         <option value="">Todas</option>
                         ${this.getCategoryOptions()}
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label>Fornecedor:</label>
-                    <select id="supplier-filter" class="form-control" onchange="Pecas.filterBySupplier()">
-                        <option value="">Todos</option>
-                        <option value="sup-ebst"   ${this.supplierFilter === 'sup-ebst'   ? 'selected' : ''}>EBST</option>
-                        <option value="sup-hobart" ${this.supplierFilter === 'sup-hobart' ? 'selected' : ''}>Hobart</option>
                     </select>
                 </div>
             </div>
@@ -123,11 +114,6 @@ const Pecas = {
         // Apply category filter
         if (this.categoryFilter) {
             parts = parts.filter(p => p.categoria === this.categoryFilter);
-        }
-
-        // Apply supplier filter
-        if (this.supplierFilter) {
-            parts = parts.filter(p => (p.fornecedorId || 'sup-ebst') === this.supplierFilter);
         }
         
         const total = parts.length;
@@ -255,16 +241,6 @@ const Pecas = {
     filterByCategory() {
         const select = document.getElementById('category-filter');
         this.categoryFilter = select.value;
-        this.currentPage = 1;
-        this.refreshTable();
-    },
-
-    /**
-     * Filter by supplier
-     */
-    filterBySupplier() {
-        const select = document.getElementById('supplier-filter');
-        this.supplierFilter = select.value;
         this.currentPage = 1;
         this.refreshTable();
     },
@@ -454,13 +430,7 @@ const Pecas = {
                         <li>Coluna: <code>categoria</code> - Categoria</li>
                         <li>Coluna: <code>valor</code> - Valor unitário</li>
                         <li>Coluna: <code>unidade</code> - Unidade de medida</li>
-                        <li>Coluna: <code>fornecedorId</code> - ID do fornecedor (sup-ebst ou sup-hobart, padrão: sup-ebst)</li>
                     </ul>
-                </div>
-                <div class="mt-3">
-                    <a href="javascript:Pecas.downloadTemplate()" class="btn btn-sm btn-outline">
-                        <i class="fas fa-download"></i> Baixar Modelo CSV
-                    </a>
                 </div>
             </div>
             <div class="modal-footer">
@@ -519,50 +489,22 @@ const Pecas = {
      */
     exportCatalog() {
         const parts = DataManager.getParts();
-
+        
         if (parts.length === 0) {
             Utils.showToast('Não há peças para exportar', 'warning');
             return;
         }
-
+        
         const data = parts.map(p => ({
             codigo: p.codigo,
             descricao: p.descricao,
             categoria: p.categoria || '',
             valor: p.valor,
-            unidade: p.unidade || 'UN',
-            fornecedorId: p.fornecedorId || 'sup-ebst'
+            unidade: p.unidade || 'UN'
         }));
-
+        
         Utils.exportToExcel(data, 'catalogo_pecas.xlsx', 'Peças');
         Utils.showToast('Catálogo exportado com sucesso', 'success');
-    },
-
-    /**
-     * Download import template
-     */
-    downloadTemplate() {
-        const templateData = [
-            {
-                codigo: 'COMP-001',
-                descricao: 'Componente de exemplo',
-                categoria: 'Eletrônica',
-                valor: 150.50,
-                unidade: 'UN',
-                fornecedorId: 'sup-ebst'
-            },
-            {
-                codigo: 'PART-002',
-                descricao: 'Peça de exemplo 2',
-                categoria: 'Mecânica',
-                valor: 85.00,
-                unidade: 'PC',
-                fornecedorId: 'sup-hobart'
-            }
-        ];
-
-        Utils.exportToExcel(templateData, 'modelo_importacao_pecas.xlsx', 'Modelo');
-        Utils.showToast('Modelo de importação baixado com sucesso', 'success');
     },
 
     // ========== AUTO-COMPLETE COMPONENT ==========
