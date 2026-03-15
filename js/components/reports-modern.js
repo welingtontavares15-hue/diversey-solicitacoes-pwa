@@ -576,29 +576,22 @@ export function applyReportsModernization() {
 
     Relatorios.renderCostFilters = function renderCostFilters() {
         const options = this.getAvailableCostFilters();
-        const suppliers = (typeof DataManager !== 'undefined' ? DataManager.getSuppliers().filter((s) => s.ativo !== false) : []);
-
-        // Reuse existing grid styles from style.css to ensure consistent alignment.
-        // The grid will automatically wrap elements and align them neatly. We also
-        // expose the status control as a span of two columns for better width.
         return `
-            <div class="report-filters-modern">
-                <div class="report-filters-grid">
-                    <!-- Linha 1: Período e Status -->
-                    <div class="filter-group">
+            <div class="report-filters-modern report-filters-modern-wide">
+                <div class="report-filters-grid report-filters-grid-wide">
+                    <div class="filter-group report-filter-field report-filter-field--date">
                         <label>De</label>
                         <input type="date" id="report-date-from" class="form-control" value="${this.filters.dateFrom}">
                     </div>
-                    <div class="filter-group">
+                    <div class="filter-group report-filter-field report-filter-field--date">
                         <label>Até</label>
                         <input type="date" id="report-date-to" class="form-control" value="${this.filters.dateTo}">
                     </div>
-                    <div class="filter-group filter-group-span-2">
+                    <div class="filter-group filter-group-span-2 report-filter-field report-filter-field--status">
                         <label>Status</label>
                         ${this.renderStatusMultiSelect('report-status')}
                     </div>
-                    <!-- Linha 2: Filtros operacionais -->
-                    <div class="filter-group">
+                    <div class="filter-group report-filter-field report-filter-field--region">
                         <label>Região</label>
                         <select id="report-regiao" class="form-control">
                             <option value="">Todas</option>
@@ -607,7 +600,7 @@ export function applyReportsModernization() {
                             `).join('')}
                         </select>
                     </div>
-                    <div class="filter-group">
+                    <div class="filter-group report-filter-field report-filter-field--technician">
                         <label>Técnico</label>
                         <select id="report-tecnico" class="form-control">
                             <option value="">Todos</option>
@@ -616,7 +609,7 @@ export function applyReportsModernization() {
                             `).join('')}
                         </select>
                     </div>
-                    <div class="filter-group">
+                    <div class="filter-group report-filter-field report-filter-field--client">
                         <label>Cliente</label>
                         <select id="report-cliente" class="form-control">
                             <option value="">Todos</option>
@@ -625,17 +618,14 @@ export function applyReportsModernization() {
                             `).join('')}
                         </select>
                     </div>
-                    <div class="filter-group">
+                    <div class="filter-group report-filter-field report-filter-field--supplier">
                         <label>Fornecedor</label>
                         <select id="report-fornecedor" class="form-control">
                             <option value="">Todos</option>
-                            <option value="sup-ebst"   ${this.filters.fornecedor === 'sup-ebst'   ? 'selected' : ''}>EBST</option>
-                            <option value="sup-hobart" ${this.filters.fornecedor === 'sup-hobart' ? 'selected' : ''}>Hobart</option>
-                            ${suppliers.filter(s => s.id !== 'sup-ebst' && s.id !== 'sup-hobart').map((s) => `<option value="${Utils.escapeHtml(s.id)}" ${this.filters.fornecedor === s.id ? 'selected' : ''}>${Utils.escapeHtml(s.nome)}</option>`).join('')}
+                            ${this.renderSupplierFilterOptions(options.fornecedores)}
                         </select>
                     </div>
-                    <!-- Linha 3: Ações -->
-                    <div class="report-filter-actions">
+                    <div class="report-filter-actions report-filter-actions-end report-filter-field report-filter-field--actions">
                         <button class="btn btn-primary report-primary-action" onclick="Relatorios.applyFilters()">
                             <i class="fas fa-filter"></i> Filtrar
                         </button>
@@ -937,6 +927,7 @@ export function applyReportsModernization() {
         this.filters.tecnico = document.getElementById('report-tecnico')?.value || '';
         this.filters.regiao = document.getElementById('report-regiao')?.value || '';
         this.filters.cliente = document.getElementById('report-cliente')?.value || '';
+        this.filters.fornecedor = document.getElementById('report-fornecedor')?.value || '';
         const hasManualPeriod = Boolean(this.filters.dateFrom || this.filters.dateTo);
         this.filters.useDefaultPeriod = !hasManualPeriod;
         if (hasManualPeriod) {

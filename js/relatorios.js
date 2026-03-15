@@ -784,14 +784,6 @@ const Relatorios = {
             this.filters.dateTo !== defaults.dateTo
         );
 
-        // Generate dynamic supplier options. We prefer to read the list of suppliers
-        // from DataManager so that any new suppliers added via the admin appear
-        // automatically in the filter dropdown. Fallback to an empty list if
-        // DataManager or getSuppliers() is undefined.
-        const suppliers = (typeof DataManager !== 'undefined' ?
-            (DataManager.getSuppliers ? DataManager.getSuppliers().filter((s) => s.ativo !== false) : [])
-            : []);
-
         return `
             <details class="filter-panel compact report-filter-panel" open>
                 <summary class="filter-panel-toggle">${hasActiveFilters ? 'Filtros ativos' : 'Filtros do relatório'}</summary>
@@ -848,7 +840,7 @@ const Relatorios = {
                         <label>Fornecedor:</label>
                         <select id="report-fornecedor" class="form-control">
                             <option value="">Todos</option>
-                            ${suppliers.map((s) => `<option value="${Utils.escapeHtml(s.id)}" ${this.filters.fornecedor === s.id ? 'selected' : ''}>${Utils.escapeHtml(s.nome)}</option>`).join('')}
+                            ${this.renderSupplierFilterOptions(options.fornecedores)}
                         </select>
                     </div>
                     <button class="btn btn-primary" onclick="Relatorios.applyFilters()">
@@ -1099,6 +1091,7 @@ const Relatorios = {
         const technicians = allTechnicians.filter(tech => relevantTechnicianIds.size === 0 || relevantTechnicianIds.has(tech.id));
         const regionsSet = new Set();
         const clientsSet = new Set();
+        const supplierIds = new Set();
         let hasMissingClient = false;
 
         relevantSolicitations.forEach((solicitation) => {
@@ -1112,6 +1105,19 @@ const Relatorios = {
             } else {
                 hasMissingClient = true;
             }
+
+            const solicitationSupplierId = String(solicitation?.fornecedorId || solicitation?.supplierId || '').trim();
+            if (solicitationSupplierId) {
+                supplierIds.add(solicitationSupplierId);
+            }
+
+            const items = Array.isArray(solicitation?.itens) ? solicitation.itens : [];
+            items.forEach((item) => {
+                const itemSupplierId = String(item?.fornecedorId || item?.supplierId || '').trim();
+                if (itemSupplierId) {
+                    supplierIds.add(itemSupplierId);
+                }
+            });
         });
 
         const clients = Array.from(clientsSet).sort((a, b) => a.localeCompare(b, 'pt-BR'));
@@ -1134,11 +1140,67 @@ const Relatorios = {
             }
         }
 
+        const registeredSuppliers = (typeof DataManager !== 'undefined' && typeof DataManager.getSuppliers === 'function')
+            ? DataManager.getSuppliers().filter((supplier) => supplier?.ativo !== false)
+            : [];
+        const suppliersById = new Map(
+            registeredSuppliers
+                .map((supplier) => ({
+                    id: String(supplier?.id || '').trim(),
+                    nome: String(supplier?.nome || '').trim()
+                }))
+                .filter((supplier) => supplier.id)
+                .map((supplier) => [supplier.id, supplier])
+        );
+
+        if (this.filters.fornecedor) {
+            supplierIds.add(String(this.filters.fornecedor).trim());
+        }
+
+        const suppliers = Array.from(supplierIds)
+            .filter(Boolean)
+            .map((supplierId) => {
+                const registeredSupplier = suppliersById.get(supplierId);
+                return {
+                    id: supplierId,
+                    nome: registeredSupplier?.nome || this.getSupplierLabel(supplierId)
+                };
+            })
+            .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+        if (!suppliers.length) {
+            registeredSuppliers.forEach((supplier) => {
+                const supplierId = String(supplier?.id || '').trim();
+                if (!supplierId) {
+                    return;
+                }
+                suppliers.push({
+                    id: supplierId,
+                    nome: String(supplier?.nome || '').trim() || this.getSupplierLabel(supplierId)
+                });
+            });
+        }
+
         return {
             tecnicos: technicians,
             regioes: regions,
-            clientes: clients
+            clientes: clients,
+            fornecedores: suppliers
         };
+    },
+
+    renderSupplierFilterOptions(suppliers = []) {
+        return (Array.isArray(suppliers) ? suppliers : [])
+            .map((supplier) => {
+                const supplierId = String(supplier?.id || '').trim();
+                if (!supplierId) {
+                    return '';
+                }
+                const supplierName = String(supplier?.nome || this.getSupplierLabel(supplierId)).trim() || supplierId;
+                return `<option value="${Utils.escapeHtml(supplierId)}" ${this.filters.fornecedor === supplierId ? 'selected' : ''}>${Utils.escapeHtml(supplierName)}</option>`;
+            })
+            .filter(Boolean)
+            .join('');
     },
     /**
      * Export solicitations report
