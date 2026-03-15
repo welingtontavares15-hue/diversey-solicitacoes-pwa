@@ -3355,6 +3355,10 @@ const AnalyticsHelper = {
     }
 };
 
+if (typeof window !== 'undefined') {
+    window.AnalyticsHelper = AnalyticsHelper;
+}
+
 
 
 

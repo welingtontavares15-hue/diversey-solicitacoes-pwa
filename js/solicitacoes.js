@@ -100,8 +100,6 @@ const Solicitacoes = {
         const canManageBackup = Auth.hasPermission('solicitacoes', 'edit') || canCreate;
         const isTecnico = Auth.getRole() === 'tecnico';
         const canExport = !!(window && window.XLSX);
-        const exportAttrs = canExport ? '' : 'disabled aria-disabled="true"';
-        const exportTitle = canExport ? '' : 'title="Exportação indisponível: biblioteca XLSX não carregada"';
 
         content.innerHTML = `
             <div class="page-header">
@@ -278,7 +276,7 @@ const Solicitacoes = {
         if (key === 'search') {
             this.filters.search = '';
         } else if (key === 'status') {
-        this.filters.statuses = (this.filters.statuses || []).filter((status) => status !== value);
+            this.filters.statuses = (this.filters.statuses || []).filter((status) => status !== value);
         } else if (key === 'period') {
             this.filters.dateFrom = '';
             this.filters.dateTo = '';
@@ -316,8 +314,8 @@ const Solicitacoes = {
                 <div class="status-filter-dropdown" data-status-dropdown="${controlId}">
                     <div class="status-filter-summary">
                         ${selected.length > 0
-                            ? selected.map(status => `<span class="tag-soft info"><i class="fas fa-check-square"></i>${Utils.escapeHtml(status.label)}</span>`).join('')
-                            : '<span class="status-filter-empty">Selecione um ou mais status</span>'}
+        ? selected.map(status => `<span class="tag-soft info"><i class="fas fa-check-square"></i>${Utils.escapeHtml(status.label)}</span>`).join('')
+        : '<span class="status-filter-empty">Selecione um ou mais status</span>'}
                     </div>
                     <div class="status-filter-options">
                         ${this.getStatusOptions().map(option => `
@@ -386,7 +384,7 @@ const Solicitacoes = {
             return map[key];
         }
         const info = Utils.getStatusInfo(status);
-        return info?.label || "Atualização da solicitação";
+        return info?.label || 'Atualização da solicitação';
     },
 
     buildTimelineEvents(sol) {
@@ -397,15 +395,15 @@ const Solicitacoes = {
                 if (!event) {
                     return;
                 }
-                let label = "Atualização da solicitação";
-                if (event.event === "created") {
-                    label = "Técnico abriu a solicitação";
-                } else if (event.event === "status_changed") {
+                let label = 'Atualização da solicitação';
+                if (event.event === 'created') {
+                    label = 'Técnico abriu a solicitação';
+                } else if (event.event === 'status_changed') {
                     label = this.getTimelineStatusLabel(event.to || sol.status);
                 }
                 events.push({
                     label,
-                    by: event.by || "Sistema",
+                    by: event.by || 'Sistema',
                     at: event.at || sol.createdAt || Date.now()
                 });
             });
@@ -415,7 +413,7 @@ const Solicitacoes = {
             sol.statusHistory.forEach((statusEvent) => {
                 events.push({
                     label: this.getTimelineStatusLabel(statusEvent.status),
-                    by: statusEvent.by || "Sistema",
+                    by: statusEvent.by || 'Sistema',
                     at: statusEvent.at || sol.createdAt || Date.now()
                 });
             });
@@ -423,8 +421,8 @@ const Solicitacoes = {
 
         if (events.length === 0) {
             events.push({
-                label: "Técnico abriu a solicitação",
-                by: sol.createdBy || sol.tecnicoNome || "Sistema",
+                label: 'Técnico abriu a solicitação',
+                by: sol.createdBy || sol.tecnicoNome || 'Sistema',
                 at: sol.createdAt || Date.now()
             });
         }
@@ -436,7 +434,7 @@ const Solicitacoes = {
     renderTimeline(sol) {
         const events = this.buildTimelineEvents(sol);
         if (!events.length) {
-            return "";
+            return '';
         }
         return `
             <h4 class="mt-4 mb-2">Histórico do fluxo da solicitação</h4>
@@ -450,7 +448,7 @@ const Solicitacoes = {
                             <div class="timeline-date">${Utils.formatDate(event.at, true)}</div>
                         </div>
                     </div>
-                `).join("")}
+                `).join('')}
             </div>
         `;
     },
@@ -1631,7 +1629,9 @@ const Solicitacoes = {
      * Filters the parts autocomplete and unlocks the parts section.
      */
     selectFornecedor(fornecedorId) {
-        if (!fornecedorId) return;
+        if (!fornecedorId) {
+            return;
+        }
 
         const hasItems = this.currentSolicitation.itens && this.currentSolicitation.itens.length > 0;
         const prev = this.currentSolicitation.fornecedorId;
@@ -1641,7 +1641,9 @@ const Solicitacoes = {
             if (!confirm('Trocar o fornecedor removerá todos os itens já adicionados.\n\nLembre-se: cada solicitação deve conter peças de um único fornecedor. Para solicitar peças da EBST e da Hobart, abra duas solicitações separadas.\n\nDeseja continuar e limpar os itens?')) {
                 // Revert the select back to previous value
                 const sel = document.getElementById('sol-fornecedor-sel');
-                if (sel) sel.value = prev;
+                if (sel) {
+                    sel.value = prev;
+                }
                 return;
             }
             this.currentSolicitation.itens = [];
@@ -1657,7 +1659,9 @@ const Solicitacoes = {
 
         // Keep hidden input in sync
         const hidden = document.getElementById('sol-fornecedor');
-        if (hidden) hidden.value = fornecedorId;
+        if (hidden) {
+            hidden.value = fornecedorId;
+        }
 
         // Reinit autocomplete filtered to the chosen supplier
         this._initAutocomplete(fornecedorId);

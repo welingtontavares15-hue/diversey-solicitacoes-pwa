@@ -196,9 +196,9 @@ const Pecas = {
                                 <td>${Utils.escapeHtml(part.descricao)}</td>
                                 <td>${Utils.escapeHtml(part.categoria || '-')}</td>
                                 <td>${(part.fornecedorId || 'sup-ebst') === 'sup-hobart'
-                                    ? `<span style="display:inline-flex;align-items:center;gap:4px;background:#fef3c7;color:#92400e;border-radius:20px;padding:2px 10px;font-size:0.75rem;font-weight:600"><i class="fas fa-industry"></i>Hobart</span>`
-                                    : `<span style="display:inline-flex;align-items:center;gap:4px;background:#dbeafe;color:#1d4ed8;border-radius:20px;padding:2px 10px;font-size:0.75rem;font-weight:600"><i class="fas fa-industry"></i>EBST</span>`
-                                }</td>
+        ? '<span style="display:inline-flex;align-items:center;gap:4px;background:#fef3c7;color:#92400e;border-radius:20px;padding:2px 10px;font-size:0.75rem;font-weight:600"><i class="fas fa-industry"></i>Hobart</span>'
+        : '<span style="display:inline-flex;align-items:center;gap:4px;background:#dbeafe;color:#1d4ed8;border-radius:20px;padding:2px 10px;font-size:0.75rem;font-weight:600"><i class="fas fa-industry"></i>EBST</span>'
+}</td>
                                 <td>${Utils.formatCurrency(part.valor)}</td>
                                 <td>${Utils.escapeHtml(part.unidade || 'UN')}</td>
                                 ${canEdit || canDelete ? `

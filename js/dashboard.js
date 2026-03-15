@@ -269,8 +269,8 @@
                                 <div class="status-filter-dropdown" data-status-dropdown="recent-status">
                                     <div class="status-filter-summary">
                                         ${recentStatusSummary.length > 0
-                                            ? recentStatusSummary.map(status => `<span class="tag-soft info"><i class="fas fa-check-square"></i>${Utils.escapeHtml(status.label)}</span>`).join('')
-                                            : '<span class="status-filter-empty">Selecione um ou mais status</span>'}
+        ? recentStatusSummary.map(status => `<span class="tag-soft info"><i class="fas fa-check-square"></i>${Utils.escapeHtml(status.label)}</span>`).join('')
+        : '<span class="status-filter-empty">Selecione um ou mais status</span>'}
                                     </div>
                                     <div class="status-filter-options">
                                         ${this.getRecentStatusOptions().map(option => `
@@ -654,8 +654,12 @@
             statsMap[s.id] = { nome: s.nome, count: 0, total: 0 };
         });
         // Guarantee both known suppliers are present even if not in DataManager
-        if (!statsMap['sup-ebst']) statsMap['sup-ebst'] = { nome: 'EBST', count: 0, total: 0 };
-        if (!statsMap['sup-hobart']) statsMap['sup-hobart'] = { nome: 'Hobart', count: 0, total: 0 };
+        if (!statsMap['sup-ebst']) {
+            statsMap['sup-ebst'] = { nome: 'EBST', count: 0, total: 0 };
+        }
+        if (!statsMap['sup-hobart']) {
+            statsMap['sup-hobart'] = { nome: 'Hobart', count: 0, total: 0 };
+        }
 
         solicitations.forEach(sol => {
             // Use solicitation-level fornecedorId first, fallback to item-level
@@ -670,7 +674,9 @@
                 const supplierIds = [...new Set((sol.itens || [])
                     .map(item => item.fornecedorId || 'sup-ebst'))];
                 supplierIds.forEach(sid => {
-                    if (!statsMap[sid]) return;
+                    if (!statsMap[sid]) {
+                        return;
+                    }
                     statsMap[sid].count += 1;
                     const cost = (sol.itens || [])
                         .filter(item => (item.fornecedorId || 'sup-ebst') === sid)
@@ -1124,7 +1130,7 @@
         this.render();
     },
 
-setRange(days) {
+    setRange(days) {
         this.rangeDays = days;
         const preferredPeriod = AnalyticsHelper.setGlobalPeriodByDays(days);
         this.recentFilters.rangeDays = preferredPeriod.rangeDays;

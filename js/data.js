@@ -1008,8 +1008,8 @@ const DataManager = {
                 slaHours: 24,
                 itemsPerPage: 10,
                 statsRangeDays: 30,
-            orcamentoMensalPecas: 0,
-            sheetIntegration: { provider: 'onedrive', target: '' }
+                orcamentoMensalPecas: 0,
+                sheetIntegration: { provider: 'onedrive', target: '' }
             };
             await CloudStorage.saveData(this.KEYS.SETTINGS, defaultSettings);
             this._sessionCache[this.KEYS.SETTINGS] = defaultSettings;
@@ -2050,7 +2050,7 @@ const DataManager = {
         const upsertRecovery = async ({ id, username, password, name, role, email, tecnicoId = null }) => {
             const normalized = this.normalizeUsername(username);
             const hash = await Utils.hashSHA256(password, `${Utils.PASSWORD_SALT}:${username}`);
-            let current = users.find(u => this.normalizeUsername(u.username) === normalized);
+            const current = users.find(u => this.normalizeUsername(u.username) === normalized);
 
             if (!current) {
                 users.push({

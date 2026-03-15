@@ -328,7 +328,7 @@ const Aprovacoes = {
     },
 
     getFilteredPendingSolicitations() {
-        let pending = AnalyticsHelper.filterSolicitations(DataManager.getPendingSolicitations().slice(), {
+        const pending = AnalyticsHelper.filterSolicitations(DataManager.getPendingSolicitations().slice(), {
             moduleKey: 'aprovacoes',
             search: this.filters.search,
             tecnico: this.filters.tecnico,
@@ -729,13 +729,13 @@ const Aprovacoes = {
                 </div>
                 
                 ${sol.fornecedorId ? (() => {
-                    const sup = DataManager.getSupplierById(sol.fornecedorId);
-                    const nome = sup ? sup.nome : (sol.fornecedorId === 'sup-hobart' ? 'Hobart' : 'EBST');
-                    const isHobart = sol.fornecedorId === 'sup-hobart';
-                    const iconBg = isHobart ? '#d97706' : '#2563eb';
-                    const tagBg  = isHobart ? '#fef3c7' : '#dbeafe';
-                    const tagTxt = isHobart ? '#92400e'  : '#1d4ed8';
-                    return `
+        const sup = DataManager.getSupplierById(sol.fornecedorId);
+        const nome = sup ? sup.nome : (sol.fornecedorId === 'sup-hobart' ? 'Hobart' : 'EBST');
+        const isHobart = sol.fornecedorId === 'sup-hobart';
+        const iconBg = isHobart ? '#d97706' : '#2563eb';
+        const tagBg  = isHobart ? '#fef3c7' : '#dbeafe';
+        const tagTxt = isHobart ? '#92400e'  : '#1d4ed8';
+        return `
                     <div class="form-group">
                         <label style="font-weight:700;font-size:0.85rem;color:#374151;text-transform:uppercase;letter-spacing:.4px"><i class="fas fa-building" style="margin-right:5px;color:#6b7280"></i>Fornecedor</label>
                         <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px">
@@ -752,7 +752,7 @@ const Aprovacoes = {
                         </div>
                         <input type="hidden" id="approve-supplier" value="${Utils.escapeHtml(sol.fornecedorId)}">
                     </div>`;
-                })() : `
+    })() : `
                 <div class="form-group">
                     <label for="approve-supplier">Fornecedor * <small class="text-muted">(legado — sem fornecedor pré-definido)</small></label>
                     <select id="approve-supplier" class="form-control" required>

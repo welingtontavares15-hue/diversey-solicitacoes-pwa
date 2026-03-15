@@ -846,7 +846,6 @@
 
                 if (supplierFilter) {
                     let totalItemsCost = 0;
-                    let totalItemsPieces = 0;
                     let supplierItemsCost = 0;
                     let supplierItemsPieces = 0;
 
@@ -858,7 +857,6 @@
                         // fornecedorId when item-level supplier is missing.
                         const itemSupplier = String(item?.fornecedorId || item?.supplierId || record.fornecedorId || '').trim();
                         totalItemsCost += itemCost;
-                        totalItemsPieces += quantity;
                         if (itemSupplier === supplierFilter) {
                             supplierItemsCost += itemCost;
                             supplierItemsPieces += quantity;

@@ -327,10 +327,18 @@
             const userRole = document.getElementById('user-role');
             const headerUserName = document.getElementById('header-user-name');
             const headerUserRole = document.getElementById('header-user-role');
-            if (userName) { userName.textContent = currentUser?.name || 'Usuário'; }
-            if (userRole) { userRole.textContent = this.getRoleLabel(this.getRole()); }
-            if (headerUserName) { headerUserName.textContent = currentUser?.name || 'Usuário'; }
-            if (headerUserRole) { headerUserRole.textContent = this.getRoleLabel(this.getRole()); }
+            if (userName) {
+                userName.textContent = currentUser?.name || 'Usuário';
+            }
+            if (userRole) {
+                userRole.textContent = this.getRoleLabel(this.getRole());
+            }
+            if (headerUserName) {
+                headerUserName.textContent = currentUser?.name || 'Usuário';
+            }
+            if (headerUserRole) {
+                headerUserRole.textContent = this.getRoleLabel(this.getRole());
+            }
         };
     }
 

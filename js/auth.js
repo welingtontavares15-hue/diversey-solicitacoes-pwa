@@ -1,4 +1,4 @@
-﻿    /**
+﻿/**
  * Authentication and RBAC Module
  * Handles login, logout, and role-based access control
  */
@@ -620,7 +620,7 @@ const Auth = {
         }
     },
 
-            /**
+    /**
      * Check route access
      */
     canAccessRoute(routeId) {

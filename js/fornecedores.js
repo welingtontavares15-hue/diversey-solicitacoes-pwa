@@ -179,8 +179,8 @@ const Fornecedores = {
                                     <td><code>${Utils.escapeHtml(linkedUser?.username || supplier.username || '-')}</code></td>
                                     <td>
                                         ${supplier.ativo !== false
-            ? '<span class="status-badge status-aprovada"><i class="fas fa-check"></i> Ativo</span>'
-            : '<span class="status-badge status-rejeitada"><i class="fas fa-times"></i> Inativo</span>'}
+        ? '<span class="status-badge status-aprovada"><i class="fas fa-check"></i> Ativo</span>'
+        : '<span class="status-badge status-rejeitada"><i class="fas fa-times"></i> Inativo</span>'}
                                     </td>
                                     ${canEdit || canDelete ? `
                                         <td>

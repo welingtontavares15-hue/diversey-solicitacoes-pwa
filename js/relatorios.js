@@ -410,7 +410,7 @@ const Relatorios = {
         `;
     },
 
-        /**
+    /**
      * Render cost dashboard report
      */
     renderCustosReport() {
@@ -695,7 +695,7 @@ const Relatorios = {
 
         `;
     },
-/**
+    /**
      * Render part costs report
      */
     renderPecasReport() {
@@ -934,8 +934,8 @@ const Relatorios = {
                 <div class="status-filter-dropdown" data-status-dropdown="${controlId}">
                     <div class="status-filter-summary">
                         ${selected.length > 0
-                            ? selected.map(status => `<span class="tag-soft info"><i class="fas fa-check-square"></i>${Utils.escapeHtml(status.label)}</span>`).join('')
-                            : '<span class="status-filter-empty">Selecione um ou mais status</span>'}
+        ? selected.map(status => `<span class="tag-soft info"><i class="fas fa-check-square"></i>${Utils.escapeHtml(status.label)}</span>`).join('')
+        : '<span class="status-filter-empty">Selecione um ou mais status</span>'}
                     </div>
                     <div class="status-filter-options">
                         ${this.getStatusOptions().map(option => `
@@ -1517,7 +1517,7 @@ const Relatorios = {
             'Custo da peça'
         );
     },
-/**
+    /**
      * Check whether a status should be included in financial cost reports
      */
     isCostRelevantStatus(status) {
