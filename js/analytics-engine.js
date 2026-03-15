@@ -798,6 +798,14 @@
             let totalCost = 0;
             let totalPieces = 0;
 
+            // When filtering by supplier (fornecedor), adjust cost and item-level metrics.  We derive the
+            // supplierFilter from the current filterState.  If supplierFilter is empty, the default
+            // behaviour (aggregate all items) is preserved.  When it is set, only items whose
+            // fornecedorId/supplierId matches the filter contribute to cost and quantity.  Any
+            // solicitation-level freight or discount is prorated proportionally across the selected
+            // supplier's items, based on the ratio of supplier-specific item cost to the total item cost.
+            const supplierFilter = String(filterState?.fornecedor || '').trim();
+
             const ensureMonth = (date) => {
                 const monthDate = date || period?.from || new Date();
                 const key = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`;
@@ -827,26 +835,72 @@
                 const region = record._analysisRegion || this.getSolicitationRegion(record);
                 const clientName = record._analysisClientName || this.getSolicitationClientName(record);
                 const items = Array.isArray(record.itens) ? record.itens : [];
-                const analysisCost = toFiniteNumber(record._analysisCost, 0);
-                const analysisPieces = toFiniteNumber(record._analysisPieces, 0);
 
+                // Original solicitation-level totals
+                const originalCost = toFiniteNumber(record._analysisCost, 0);
+                const originalPieces = toFiniteNumber(record._analysisPieces, 0);
+
+                // Compute supplier-specific cost and pieces when a supplier filter is active
+                let analysisCost = originalCost;
+                let analysisPieces = originalPieces;
+
+                if (supplierFilter) {
+                    let totalItemsCost = 0;
+                    let totalItemsPieces = 0;
+                    let supplierItemsCost = 0;
+                    let supplierItemsPieces = 0;
+
+                    items.forEach((item) => {
+                        const quantity = toFiniteNumber(item?.quantidade, 0);
+                        const unitValue = toFiniteNumber(item?.valorUnit, 0);
+                        const itemCost = quantity * unitValue;
+                        // Attempt to derive the supplier for this item.  Fallback to the solicitation's
+                        // fornecedorId when item-level supplier is missing.
+                        const itemSupplier = String(item?.fornecedorId || item?.supplierId || record.fornecedorId || '').trim();
+                        totalItemsCost += itemCost;
+                        totalItemsPieces += quantity;
+                        if (itemSupplier === supplierFilter) {
+                            supplierItemsCost += itemCost;
+                            supplierItemsPieces += quantity;
+                        }
+                    });
+                    // Prorate freight/discount across supplier items proportionally
+                    const remainder = originalCost - totalItemsCost;
+                    const ratio = totalItemsCost > 0 ? (supplierItemsCost / totalItemsCost) : 0;
+                    analysisCost = supplierItemsCost + ratio * remainder;
+                    analysisPieces = supplierItemsPieces;
+                }
+
+                // If a supplier filter is set but no items belong to the supplier in this
+                // solicitation, skip cost and call contributions entirely.  This prevents
+                // solicitations from other suppliers from diluting averages or counts.
+                if (supplierFilter && analysisPieces === 0) {
+                    return;
+                }
+
+                // Populate piece ranking.  When supplierFilter is active, include only items
+                // belonging to the filtered supplier.
                 items.forEach((item) => {
                     const quantity = toFiniteNumber(item?.quantidade, 0);
                     const unitValue = toFiniteNumber(item?.valorUnit, 0);
                     const totalItem = roundCurrency(quantity * unitValue);
-                    const pieceKey = String(item?.codigo || item?.descricao || 'SEM-CODIGO').trim();
-                    const currentPiece = pieceMap.get(pieceKey) || {
-                        codigo: item?.codigo || '-',
-                        descricao: item?.descricao || 'Peca sem descricao',
-                        quantidade: 0,
-                        totalCost: 0,
-                        averageUnitCost: 0
-                    };
-                    currentPiece.quantidade += quantity;
-                    currentPiece.totalCost += totalItem;
-                    pieceMap.set(pieceKey, currentPiece);
+                    const itemSupplier = String(item?.fornecedorId || item?.supplierId || record.fornecedorId || '').trim();
+                    if (!supplierFilter || itemSupplier === supplierFilter) {
+                        const pieceKey = String(item?.codigo || item?.descricao || 'SEM-CODIGO').trim();
+                        const currentPiece = pieceMap.get(pieceKey) || {
+                            codigo: item?.codigo || '-',
+                            descricao: item?.descricao || 'Peca sem descricao',
+                            quantidade: 0,
+                            totalCost: 0,
+                            averageUnitCost: 0
+                        };
+                        currentPiece.quantidade += quantity;
+                        currentPiece.totalCost += totalItem;
+                        pieceMap.set(pieceKey, currentPiece);
+                    }
                 });
 
+                // Update technician-level aggregation
                 const currentTech = technicianMap.get(technicianName) || {
                     nome: technicianName,
                     regiao: region,
@@ -861,6 +915,7 @@
                 currentTech.clients.add(clientName);
                 technicianMap.set(technicianName, currentTech);
 
+                // Update region-level aggregation
                 const currentRegion = regionMap.get(region) || {
                     regiao: region,
                     requestCount: 0,
@@ -872,6 +927,7 @@
                 currentRegion.totalPieces += analysisPieces;
                 regionMap.set(region, currentRegion);
 
+                // Update monthly and global totals
                 monthEntry.totalCost += analysisCost;
                 monthEntry.totalPieces += analysisPieces;
                 totalCost += analysisCost;
