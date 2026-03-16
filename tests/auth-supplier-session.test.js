@@ -72,4 +72,18 @@ describe('Auth supplier session fallback', () => {
 
         expect(sessionUser.fornecedorId).toBe('sup-hobart');
     });
+
+    it('rewrites a legacy Hobart supplierId to the canonical supplier scope during session bootstrap', () => {
+        const Auth = loadAuth();
+        const sessionUser = Auth.buildSessionUser({
+            id: 'fornecedor_hobart_legacy',
+            username: 'Hobart',
+            name: 'Hobart',
+            role: 'fornecedor',
+            email: 'tavarespatricia845@gmail.com',
+            fornecedorId: 'mmqo7gg5i4oke5xgel'
+        });
+
+        expect(sessionUser.fornecedorId).toBe('sup-hobart');
+    });
 });

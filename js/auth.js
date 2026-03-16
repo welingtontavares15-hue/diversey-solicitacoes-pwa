@@ -150,6 +150,24 @@ const Auth = {
         }
 
         const explicitSupplierId = String(candidate.fornecedorId || '').trim();
+        const inferredSupplierId = this.inferSupplierIdFromIdentity(candidate);
+
+        if (typeof DataManager !== 'undefined' && typeof DataManager.getCanonicalSupplierId === 'function') {
+            const canonicalSupplierId = DataManager.getCanonicalSupplierId(explicitSupplierId, {
+                username: candidate.username,
+                name: candidate.name,
+                supplierName: candidate.name,
+                email: candidate.email
+            });
+            if (canonicalSupplierId) {
+                return canonicalSupplierId;
+            }
+        }
+
+        if (inferredSupplierId && (!explicitSupplierId || inferredSupplierId !== explicitSupplierId)) {
+            return inferredSupplierId;
+        }
+
         if (explicitSupplierId) {
             return explicitSupplierId;
         }
@@ -188,7 +206,7 @@ const Auth = {
             return matchedByName.id;
         }
 
-        return this.inferSupplierIdFromIdentity(candidate);
+        return inferredSupplierId;
     },
 
     /**
@@ -199,7 +217,7 @@ const Auth = {
             return null;
         }
 
-        const resolvedFornecedorId = String(user.fornecedorId || '').trim() || this.resolveSupplierId(user) || null;
+        const resolvedFornecedorId = this.resolveSupplierId(user) || String(user.fornecedorId || '').trim() || null;
         return {
             id: user.id,
             username: user.username,
@@ -759,17 +777,14 @@ const Auth = {
     getFornecedorId() {
         if (this.currentUser?.role === 'fornecedor') {
             const explicitSupplierId = String(this.currentUser.fornecedorId || '').trim();
-            if (explicitSupplierId) {
-                return explicitSupplierId;
-            }
             const resolvedFornecedorId = this.resolveSupplierId(this.currentUser);
-            if (resolvedFornecedorId) {
+            if (resolvedFornecedorId && resolvedFornecedorId !== explicitSupplierId) {
                 this.currentUser.fornecedorId = resolvedFornecedorId;
                 if (typeof this.persistSession === 'function') {
                     this.persistSession(this.currentUser);
                 }
             }
-            return resolvedFornecedorId || null;
+            return resolvedFornecedorId || explicitSupplierId || null;
         }
         return null;
     },
@@ -921,7 +936,6 @@ const Auth = {
         // Online-only mode: Rate limit state is in-memory only, no persistence
     }
 };
-
 
 
 
