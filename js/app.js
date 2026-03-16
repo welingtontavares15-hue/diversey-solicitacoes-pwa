@@ -60,6 +60,14 @@ const App = {
 
             // Check if user is logged in
             if (Auth.init()) {
+                this.setLoginBootstrapState(true, 'Restaurando sessão e sincronizando dados...');
+                if (typeof DataManager !== 'undefined' && typeof DataManager.syncAll === 'function') {
+                    try {
+                        await DataManager.syncAll('app_auth_restore');
+                    } catch (_error) {
+                        // Best-effort: a sessão local já foi validada pelo Auth.init()
+                    }
+                }
                 this.showApp();
             } else {
                 this.showLogin();
@@ -1977,7 +1985,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
-
 
 
 

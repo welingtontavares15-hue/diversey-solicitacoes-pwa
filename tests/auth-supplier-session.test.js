@@ -57,4 +57,19 @@ describe('Auth supplier session fallback', () => {
         expect(Auth.currentUser.fornecedorId).toBe('sup-hobart');
         expect(Auth.persistSession).toHaveBeenCalled();
     });
+
+    it('falls back to supplier aliases when the supplier registry is not loaded yet', () => {
+        global.DataManager.getSuppliers.mockReturnValue([]);
+
+        const Auth = loadAuth();
+        const sessionUser = Auth.buildSessionUser({
+            id: 'fornecedor_hobart',
+            username: 'fornecedor.hobart',
+            name: 'Operacao Fornecedor',
+            role: 'fornecedor',
+            email: 'stale-hobart@example.com'
+        });
+
+        expect(sessionUser.fornecedorId).toBe('sup-hobart');
+    });
 });

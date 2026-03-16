@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v35-hobart';
+const CACHE_VERSION = 'v36-hobart-flow';
 const CACHE_PREFIX = 'dashboard-pecas';
 const OFFLINE_URL = './offline.html';
 

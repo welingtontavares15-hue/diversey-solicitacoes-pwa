@@ -107,6 +107,42 @@ const Auth = {
         return String(value || '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
     },
 
+    inferSupplierIdFromIdentity(user = null) {
+        const candidate = user || this.currentUser;
+        if (!candidate || String(candidate.role || '').trim().toLowerCase() !== 'fornecedor') {
+            return null;
+        }
+
+        const normalizedUsername = this.normalizeSupplierScopeValue(candidate.username || '');
+        const normalizedName = this.normalizeSupplierScopeValue(candidate.name || '');
+        const normalizedEmail = (typeof DataManager !== 'undefined' && typeof DataManager.normalizeEmail === 'function')
+            ? DataManager.normalizeEmail(candidate.email)
+            : String(candidate.email || '').trim().toLowerCase();
+        const heuristics = [
+            {
+                id: 'sup-hobart',
+                tokens: ['hobart', '@hobart.com.br', 'pedidos@hobart.com.br']
+            },
+            {
+                id: 'sup-ebst',
+                tokens: ['ebst', 'ebstecnologica', '@ebstecnologica.com.br', 'pedidos@ebstecnologica.com.br']
+            }
+        ];
+
+        const matchesToken = (tokens = []) => tokens.some((token) => {
+            const normalizedToken = String(token || '').trim().toLowerCase();
+            if (!normalizedToken) {
+                return false;
+            }
+            return normalizedUsername.includes(normalizedToken)
+                || normalizedName.includes(normalizedToken)
+                || normalizedEmail.includes(normalizedToken);
+        });
+
+        const matchedHeuristic = heuristics.find((entry) => matchesToken(entry.tokens));
+        return matchedHeuristic?.id || null;
+    },
+
     resolveSupplierId(user = null) {
         const candidate = user || this.currentUser;
         if (!candidate || String(candidate.role || '').trim().toLowerCase() !== 'fornecedor') {
@@ -118,46 +154,41 @@ const Auth = {
             return explicitSupplierId;
         }
 
-        if (typeof DataManager === 'undefined' || typeof DataManager.getSuppliers !== 'function') {
-            return null;
-        }
+        const suppliers = (typeof DataManager !== 'undefined' && typeof DataManager.getSuppliers === 'function')
+            ? DataManager.getSuppliers()
+            : [];
 
-        const suppliers = DataManager.getSuppliers();
-        if (!Array.isArray(suppliers) || suppliers.length === 0) {
-            return null;
-        }
-
-        const normalizedEmail = (typeof DataManager.normalizeEmail === 'function')
+        const normalizedEmail = (typeof DataManager !== 'undefined' && typeof DataManager.normalizeEmail === 'function')
             ? DataManager.normalizeEmail(candidate.email)
             : String(candidate.email || '').trim().toLowerCase();
         const usernameTokens = this.normalizeSupplierScopeValue(candidate.username || '').split(/[^a-z0-9]+/).filter(Boolean);
         const nameTokens = this.normalizeSupplierScopeValue(candidate.name || '').split(/[^a-z0-9]+/).filter(Boolean);
 
-        const matchedByEmail = suppliers.find((supplier) => {
+        const matchedByEmail = Array.isArray(suppliers) ? suppliers.find((supplier) => {
             if (typeof Utils !== 'undefined' && typeof Utils.supplierHasOperationalEmail === 'function') {
                 return Utils.supplierHasOperationalEmail(supplier, normalizedEmail);
             }
-            const supplierEmail = (typeof DataManager.normalizeEmail === 'function')
+            const supplierEmail = (typeof DataManager !== 'undefined' && typeof DataManager.normalizeEmail === 'function')
                 ? DataManager.normalizeEmail(supplier?.email)
                 : String(supplier?.email || '').trim().toLowerCase();
             return normalizedEmail && supplierEmail === normalizedEmail;
-        });
+        }) : null;
         if (matchedByEmail?.id) {
             return matchedByEmail.id;
         }
 
-        const matchedByName = suppliers.find((supplier) => {
+        const matchedByName = Array.isArray(suppliers) ? suppliers.find((supplier) => {
             const normalizedSupplierName = this.normalizeSupplierScopeValue(supplier?.nome || supplier?.name || '');
             if (!normalizedSupplierName) {
                 return false;
             }
             return usernameTokens.includes(normalizedSupplierName) || nameTokens.includes(normalizedSupplierName);
-        });
+        }) : null;
         if (matchedByName?.id) {
             return matchedByName.id;
         }
 
-        return null;
+        return this.inferSupplierIdFromIdentity(candidate);
     },
 
     /**
@@ -890,9 +921,6 @@ const Auth = {
         // Online-only mode: Rate limit state is in-memory only, no persistence
     }
 };
-
-
-
 
 
 
