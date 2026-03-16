@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Authentication and RBAC Module
  * Handles login, logout, and role-based access control
  */
@@ -103,6 +103,63 @@ const Auth = {
             { id: 'perfil', icon: 'fa-user-cog', label: 'Meu Perfil', section: 'Suporte' }
         ]
     },
+    normalizeSupplierScopeValue(value) {
+        return String(value || '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+    },
+
+    resolveSupplierId(user = null) {
+        const candidate = user || this.currentUser;
+        if (!candidate || String(candidate.role || '').trim().toLowerCase() !== 'fornecedor') {
+            return null;
+        }
+
+        const explicitSupplierId = String(candidate.fornecedorId || '').trim();
+        if (explicitSupplierId) {
+            return explicitSupplierId;
+        }
+
+        if (typeof DataManager === 'undefined' || typeof DataManager.getSuppliers !== 'function') {
+            return null;
+        }
+
+        const suppliers = DataManager.getSuppliers();
+        if (!Array.isArray(suppliers) || suppliers.length === 0) {
+            return null;
+        }
+
+        const normalizedEmail = (typeof DataManager.normalizeEmail === 'function')
+            ? DataManager.normalizeEmail(candidate.email)
+            : String(candidate.email || '').trim().toLowerCase();
+        const usernameTokens = this.normalizeSupplierScopeValue(candidate.username || '').split(/[^a-z0-9]+/).filter(Boolean);
+        const nameTokens = this.normalizeSupplierScopeValue(candidate.name || '').split(/[^a-z0-9]+/).filter(Boolean);
+
+        const matchedByEmail = suppliers.find((supplier) => {
+            if (typeof Utils !== 'undefined' && typeof Utils.supplierHasOperationalEmail === 'function') {
+                return Utils.supplierHasOperationalEmail(supplier, normalizedEmail);
+            }
+            const supplierEmail = (typeof DataManager.normalizeEmail === 'function')
+                ? DataManager.normalizeEmail(supplier?.email)
+                : String(supplier?.email || '').trim().toLowerCase();
+            return normalizedEmail && supplierEmail === normalizedEmail;
+        });
+        if (matchedByEmail?.id) {
+            return matchedByEmail.id;
+        }
+
+        const matchedByName = suppliers.find((supplier) => {
+            const normalizedSupplierName = this.normalizeSupplierScopeValue(supplier?.nome || supplier?.name || '');
+            if (!normalizedSupplierName) {
+                return false;
+            }
+            return usernameTokens.includes(normalizedSupplierName) || nameTokens.includes(normalizedSupplierName);
+        });
+        if (matchedByName?.id) {
+            return matchedByName.id;
+        }
+
+        return null;
+    },
+
     /**
      * Normalize user object for session storage
      */
@@ -110,6 +167,8 @@ const Auth = {
         if (!user) {
             return null;
         }
+
+        const resolvedFornecedorId = String(user.fornecedorId || '').trim() || this.resolveSupplierId(user) || null;
         return {
             id: user.id,
             username: user.username,
@@ -117,7 +176,7 @@ const Auth = {
             role: user.role,
             email: user.email,
             tecnicoId: user.tecnicoId,
-            fornecedorId: user.fornecedorId,
+            fornecedorId: resolvedFornecedorId,
             expiresAt: Date.now() + this.SESSION_DURATION_MS
         };
     },
@@ -668,7 +727,18 @@ const Auth = {
      */
     getFornecedorId() {
         if (this.currentUser?.role === 'fornecedor') {
-            return this.currentUser.fornecedorId || null;
+            const explicitSupplierId = String(this.currentUser.fornecedorId || '').trim();
+            if (explicitSupplierId) {
+                return explicitSupplierId;
+            }
+            const resolvedFornecedorId = this.resolveSupplierId(this.currentUser);
+            if (resolvedFornecedorId) {
+                this.currentUser.fornecedorId = resolvedFornecedorId;
+                if (typeof this.persistSession === 'function') {
+                    this.persistSession(this.currentUser);
+                }
+            }
+            return resolvedFornecedorId || null;
         }
         return null;
     },

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Cloud Storage Module
  * Handles data synchronization across devices using Firebase Realtime Database
  * Falls back to localStorage when Firebase is unavailable
@@ -313,14 +313,17 @@ const CloudStorage = {
         const sessionUser = typeof Auth !== 'undefined' && typeof Auth.getCurrentUser === 'function'
             ? Auth.getCurrentUser()
             : null;
+        const resolvedSupplierId = sessionUser?.role === 'fornecedor' && typeof Auth !== 'undefined' && typeof Auth.getFornecedorId === 'function'
+            ? Auth.getFornecedorId()
+            : (sessionUser?.fornecedorId || null);
         const { query, orderByChild, equalTo } = window.firebaseModules || {};
 
         if (sessionUser?.role === 'tecnico' && sessionUser?.tecnicoId && typeof query === 'function') {
             return query(baseRef, orderByChild('tecnicoId'), equalTo(sessionUser.tecnicoId));
         }
 
-        if (sessionUser?.role === 'fornecedor' && sessionUser?.fornecedorId && typeof query === 'function') {
-            return query(baseRef, orderByChild('fornecedorId'), equalTo(sessionUser.fornecedorId));
+        if (sessionUser?.role === 'fornecedor' && resolvedSupplierId && typeof query === 'function') {
+            return query(baseRef, orderByChild('fornecedorId'), equalTo(resolvedSupplierId));
         }
 
         return baseRef;
@@ -502,11 +505,15 @@ const CloudStorage = {
             return false;
         }
 
+        const resolvedSupplierId = activeUser?.role === 'fornecedor' && typeof Auth !== 'undefined' && typeof Auth.getFornecedorId === 'function'
+            ? Auth.getFornecedorId()
+            : (activeUser.fornecedorId || null);
+
         await set(FirebaseInit.getRef(`data/diversey_sessions/${uid}`), {
             username: activeUser.username,
             role: activeUser.role,
             tecnicoId: activeUser.tecnicoId || null,
-            fornecedorId: activeUser.fornecedorId || null,
+            fornecedorId: resolvedSupplierId || null,
             expiresAt: Number(activeUser.expiresAt) || (Date.now() + (30 * 24 * 60 * 60 * 1000)),
             updatedAt: Date.now()
         });
@@ -515,7 +522,7 @@ const CloudStorage = {
             username: activeUser.username,
             role: activeUser.role,
             tecnicoId: activeUser.tecnicoId || null,
-            fornecedorId: activeUser.fornecedorId || null,
+            fornecedorId: resolvedSupplierId || null,
             expiresAt: Number(activeUser.expiresAt) || (Date.now() + (30 * 24 * 60 * 60 * 1000))
         };
         return true;
