@@ -1,13 +1,17 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Portal de Solicitação de Peças MWW – Diversey, A Solenis Company">
+    <meta name="theme-color" content="#0E1A2B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Portal de Solicitação de Peças MWW</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=20260315i">
+    <link rel="stylesheet" href="css/style.css?v=20260317a">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="manifest" href="manifest.webmanifest">
     <script src="js/vendor/chart.umd.js"></script>
@@ -17,17 +21,17 @@
     <script type="module" src="./js/firebase-init.js"></script>
 </head>
 <body class="light-mode" data-theme="light">
+
     <!-- Login Screen -->
-    <div id="login-screen" class="login-container">
-            <div class="login-card">
+    <div id="login-screen" class="login-container" role="main">
+        <div class="login-card">
             <div class="login-logo">
                 <div class="brand-emblem" aria-hidden="true"><span>D</span></div>
                 <h1>Diversey</h1>
-                <!-- Corrected portal name with proper diacritics and updated abbreviation -->
                 <div class="login-slogan">Portal de Solicitação de Peças MWW</div>
                 <p>A Solenis Company</p>
             </div>
-            <form id="login-form" class="login-form">
+            <form id="login-form" class="login-form" autocomplete="on" novalidate>
                 <div class="form-group">
                     <label for="login-username">Usuário</label>
                     <input type="text" id="login-username" class="form-control" placeholder="Digite seu usuário" required autocomplete="username" autocapitalize="none" spellcheck="false">
@@ -37,27 +41,27 @@
                     <div class="password-field">
                         <input type="password" id="login-password" class="form-control" placeholder="Digite sua senha" required autocomplete="current-password">
                         <button type="button" id="toggle-password" class="toggle-password" aria-label="Mostrar senha">
-                            <i class="fas fa-eye"></i>
+                            <i class="fas fa-eye" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
                 <button type="submit" id="login-submit" class="btn btn-primary btn-block">
-                    <i class="fas fa-sign-in-alt"></i> Entrar
+                    <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Entrar
                 </button>
-                <div id="login-status" class="helper-text login-status hidden" aria-live="polite"></div>
-                <div id="login-error" class="error-message hidden"></div>
+                <div id="login-status" class="helper-text login-status hidden" aria-live="polite" role="status"></div>
+                <div id="login-error" class="error-message hidden" aria-live="assertive" role="alert"></div>
             </form>
             <div class="login-info-card">
-                <h3>Bem-vindo ao portal</h3>
+                <h3><i class="fas fa-info-circle" aria-hidden="true"></i> Bem-vindo ao portal</h3>
                 <p>Para acessar o sistema, utilize suas credenciais ou solicite liberação ao administrador.</p>
             </div>
             <div id="login-credentials" class="credentials-panel hidden">
                 <div class="credentials-header">
                     <div>
-                        <h3><i class="fas fa-user-lock"></i> Credenciais disponíveis</h3>
+                        <h3><i class="fas fa-user-lock" aria-hidden="true"></i> Credenciais disponíveis</h3>
                         <p>Use um dos usuários abaixo para acessar imediatamente.</p>
                     </div>
-                    <span class="badge-info"><i class="fas fa-shield-alt"></i> RBAC ativo</span>
+                    <span class="badge-info"><i class="fas fa-shield-alt" aria-hidden="true"></i> RBAC ativo</span>
                 </div>
                 <div class="credentials-table-wrapper">
                     <table class="credentials-table">
@@ -78,7 +82,7 @@
     <!-- Main Application -->
     <div id="app-container" class="app-container hidden">
         <!-- Sidebar -->
-        <aside id="sidebar" class="sidebar">
+        <aside id="sidebar" class="sidebar" aria-label="Menu de navegação">
             <div class="sidebar-header">
                 <div class="logo">
                     <div class="brand-emblem sidebar-brand" aria-hidden="true"><span>D</span></div>
@@ -87,16 +91,16 @@
                         <small class="logo-subtitle">A Solenis Company</small>
                     </div>
                 </div>
-                <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Recolher menu lateral">
-                    <i class="fas fa-bars"></i>
+                <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Recolher menu lateral" aria-expanded="true">
+                    <i class="fas fa-bars" aria-hidden="true"></i>
                 </button>
             </div>
-            <nav id="sidebar-nav" class="sidebar-nav">
+            <nav id="sidebar-nav" class="sidebar-nav" aria-label="Navegação principal">
                 <!-- Menu items will be dynamically inserted based on user role -->
             </nav>
             <div class="sidebar-footer">
                 <div class="user-info">
-                    <div class="user-avatar">
+                    <div class="user-avatar" aria-hidden="true">
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="user-details">
@@ -105,55 +109,55 @@
                     </div>
                 </div>
                 <div class="sidebar-actions">
-                    <button id="theme-toggle" class="btn-icon" title="Alternar tema">
-                        <i class="fas fa-moon"></i>
+                    <button id="theme-toggle" class="btn-icon" title="Alternar tema" aria-label="Alternar entre modo claro e escuro">
+                        <i class="fas fa-moon" aria-hidden="true"></i>
                     </button>
-                    <button id="logout-btn" class="btn-icon" title="Sair">
-                        <i class="fas fa-sign-out-alt"></i>
+                    <button id="logout-btn" class="btn-icon" title="Sair da conta" aria-label="Sair da conta">
+                        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
         </aside>
-        <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+        <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
 
         <!-- Main Content -->
         <main class="main-content">
             <!-- Header -->
-            <header class="main-header">
+            <header class="main-header" role="banner">
                 <div class="header-left">
                     <div class="mobile-nav-buttons">
-                        <button id="mobile-menu-btn" class="btn-icon" aria-label="Abrir menu">
-                            <i class="fas fa-bars"></i>
+                        <button id="mobile-menu-btn" class="btn-icon" aria-label="Abrir menu lateral">
+                            <i class="fas fa-bars" aria-hidden="true"></i>
                         </button>
                         <button id="mobile-home-btn" class="btn-icon" aria-label="Voltar para início">
-                            <i class="fas fa-home"></i>
+                            <i class="fas fa-home" aria-hidden="true"></i>
                         </button>
                     </div>
-                    <div class="breadcrumb" id="breadcrumb">
+                    <nav class="breadcrumb" id="breadcrumb" aria-label="Localização atual">
                         <span>Visão Geral</span>
-                    </div>
+                    </nav>
                 </div>
                 <div class="header-actions">
                     <div class="header-search-zone">
-                        <div class="global-search">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="global-search-input" class="form-control" placeholder="Buscar número, cliente, peça ou técnico.">
+                        <div class="global-search" role="search">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <input type="text" id="global-search-input" class="form-control" placeholder="Buscar número, cliente, peça ou técnico…" aria-label="Busca global">
                         </div>
                     </div>
                     <div class="header-controls">
-                        <button id="sync-btn" class="btn-icon" title="Sincronizar dados">
-                            <i class="fas fa-sync-alt"></i>
+                        <button id="sync-btn" class="btn-icon" title="Sincronizar dados agora" aria-label="Sincronizar dados">
+                            <i class="fas fa-sync-alt" aria-hidden="true"></i>
                         </button>
-                        <div id="pending-badge" class="notification-badge hidden" title="Itens pendentes">
-                            <i class="fas fa-bell"></i>
+                        <div id="pending-badge" class="pending-action-badge hidden" title="Aprovações pendentes – clique para revisar" role="button" tabindex="0" aria-label="Aprovações pendentes">
+                            <i class="fas fa-inbox" aria-hidden="true"></i>
                             <span id="pending-count">0</span>
                         </div>
-                        <button id="notifications-toggle" class="btn-icon" title="Notificações" aria-label="Abrir notificações">
-                            <i class="fas fa-bell"></i>
-                            <span id="header-notification-dot" class="alert-dot hidden"></span>
+                        <button id="notifications-toggle" class="btn-icon" title="Notificações" aria-label="Abrir notificações" aria-expanded="false" aria-controls="notification-panel">
+                            <i class="fas fa-bell" aria-hidden="true"></i>
+                            <span id="header-notification-dot" class="alert-dot hidden" aria-hidden="true"></span>
                         </button>
-                        <div class="header-profile">
-                            <div class="header-avatar">
+                        <div class="header-profile" aria-label="Perfil do usuário">
+                            <div class="header-avatar" aria-hidden="true">
                                 <i class="fas fa-user"></i>
                             </div>
                             <div class="header-profile-meta">
@@ -164,28 +168,29 @@
                     </div>
                 </div>
             </header>
-            <div id="notification-panel" class="notification-panel hidden">
+
+            <div id="notification-panel" class="notification-panel hidden" role="dialog" aria-label="Painel de notificações" aria-modal="false">
                 <div class="notification-panel-header">
                     <h4>Notificações</h4>
-                    <button id="notification-panel-close" class="btn-icon" aria-label="Fechar notificações">
-                        <i class="fas fa-times"></i>
+                    <button id="notification-panel-close" class="btn-icon" aria-label="Fechar painel de notificações">
+                        <i class="fas fa-times" aria-hidden="true"></i>
                     </button>
                 </div>
-                <div id="notification-list" class="notification-list"></div>
+                <div id="notification-list" class="notification-list" role="list"></div>
             </div>
 
             <!-- Content Area -->
-            <div id="content-area" class="content-area">
+            <div id="content-area" class="content-area" aria-live="polite" aria-label="Conteúdo da página">
                 <!-- Dynamic content will be loaded here -->
             </div>
         </main>
     </div>
 
     <!-- Toast Container -->
-    <div id="toast-container" class="toast-container"></div>
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-label="Notificações do sistema"></div>
 
     <!-- Modal Container -->
-    <div id="modal-container" class="modal-container hidden">
+    <div id="modal-container" class="modal-container hidden" role="dialog" aria-modal="true">
         <div class="modal-backdrop"></div>
         <div id="modal-content" class="modal-content">
             <!-- Modal content will be dynamically inserted -->
@@ -193,9 +198,9 @@
     </div>
 
     <!-- Loading Overlay -->
-    <div id="loading-overlay" class="loading-overlay hidden">
-        <div class="spinner"></div>
-        <span>Carregando...</span>
+    <div id="loading-overlay" class="loading-overlay hidden" role="status" aria-label="Carregando">
+        <div class="spinner" aria-hidden="true"></div>
+        <span>Carregando…</span>
     </div>
 
     <!-- Scripts -->
@@ -216,37 +221,3 @@
     <script src="js/ui-modern.js?v=20260315i"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
